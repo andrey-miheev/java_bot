@@ -8,6 +8,11 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+/**
+ * Основной класс Telegram бота.
+ * Обрабатывает входящие сообщения и отправляет ответы пользователям.
+ * Использует Long Polling для получения обновлений от Telegram API.
+ */
 @Component
 public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
 
@@ -62,4 +67,5 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
             default -> "Твое сообщение: " + userInput;
         };
     }
+
 }
