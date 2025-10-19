@@ -17,7 +17,7 @@ public class Javabot1Application {
 	 * @param args аргументы командной строки
 	 */
 	public static void main(String[] args) {
-		SpringApplication.run(Javabot1Application.class, args);
-	}
 
+        SpringApplication.run(Javabot1Application.class, args);
+	}
 }
