@@ -1,45 +1,65 @@
 package com.task1.javabot1;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
-import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 
 /**
  * Основной класс Telegram-бота.
- * Подключает обработчик входящих сообщений и передаёт токен бота.
+ * Обрабатывает входящие сообщения и отправляет ответы пользователям.
+ * Использует Long Polling для получения обновлений от Telegram API.
  */
 @Component
-public class MyTelegramBot implements SpringLongPollingBot {
+public class MyTelegramBot extends TelegramLongPollingBot {
 
-    /** Обработчик сообщений от пользователей. */
-    private final UpdateConsumer updateConsumer;
+    private final MessageHandler messageHandler = new MessageHandler();
 
     /**
-     * Конструктор с внедрением зависимостей.
+     * Обрабатывает входящие обновления от Telegram.
      *
-     * @param updateConsumer обработчик входящих обновлений
+     * @param update обработчик входящих обновлений
      */
-    public MyTelegramBot(UpdateConsumer updateConsumer) {
-        this.updateConsumer = updateConsumer;
+    @Override
+    public void onUpdateReceived(Update update) {
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            String userInput = update.getMessage().getText();
+            String userId = update.getMessage().getFrom().getId().toString();
+            String chatId = update.getMessage().getChatId().toString();
+
+            String response = messageHandler.processUserInput(userInput,userId);
+            sendMessage(chatId,response);
+        }
     }
 
     /**
-     * Возвращает токен Telegram-бота из переменных окружения.
+     * Создание сообщения от бота.
      *
-     * @return токен бота
+     * @param chatId ID чата.
+     * @param text обработанный ответ бота.
      */
+    private void sendMessage(String chatId, String text){
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(text);
+
+        try{
+            execute(message);
+        }catch(TelegramApiException e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String getBotUsername() {
+        return "java_mih_grib_bot";
+    }
+
     @Override
     public String getBotToken() {
         return System.getenv("TELEGRAM_BOT_TOKEN");
     }
 
-    /**
-     * Возвращает обработчик обновлений (сообщений).
-     *
-     * @return объект UpdateConsumer
-     */
-    @Override
-    public LongPollingUpdateConsumer getUpdatesConsumer() {
-        return updateConsumer;
-    }
 }
