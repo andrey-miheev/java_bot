@@ -1,27 +1,18 @@
 package com.task1.javabot1;
 
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
 
 /**
  * Основной класс Telegram-бота.
  * Обрабатывает входящие сообщения и отправляет ответы пользователям.
  * Использует Long Polling для получения обновлений от Telegram API.
  */
-@Component
 public class MyTelegramBot extends TelegramLongPollingBot {
-
     private final MessageHandler messageHandler = new MessageHandler();
 
-    /**
-     * Обрабатывает входящие обновления от Telegram.
-     *
-     * @param update обработчик входящих обновлений
-     */
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -48,6 +39,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
         try{
             execute(message);
         }catch(TelegramApiException e){
+
             e.printStackTrace();
         }
     }
