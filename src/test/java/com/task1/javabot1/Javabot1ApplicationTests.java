@@ -19,6 +19,4 @@ class MessageHandlerTest {
         String userId = "testUser115";
         assertEquals("Твое сообщение: TEST", messageHandler.processUserInput(testInput, userId));
     }
-
-
 }
