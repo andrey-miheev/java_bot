@@ -5,7 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
- * Обрабатывает входящие сообщения для бота.
+ * Основной обработчик сообщений.
+ * Отвечает за парсинг пользовательских команд, маршрутизацию и форматирование ответов.
  */
 public class MessageHandler {
     private final Map<String, UserData> userDataMap = new ConcurrentHashMap<>();
@@ -185,3 +186,4 @@ public class MessageHandler {
         }
     }
 }
+
