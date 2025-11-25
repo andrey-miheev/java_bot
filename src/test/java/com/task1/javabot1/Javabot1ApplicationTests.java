@@ -130,7 +130,7 @@ class MessageHandlerFinanceTests {
         String result = messageHandler.Response("/income", "", "", userData);
         Double amount1_test = 50000.00;
         Double amount2_test = 10000.00;
-String expected = String.format("""
+        String expected = String.format("""
                 Ваши доходы:
                 — Доход «Зарплата» на сумму %,.2f
                 — Доход «Зарплата» на сумму %,.2f
