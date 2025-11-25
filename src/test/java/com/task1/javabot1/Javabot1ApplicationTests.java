@@ -237,3 +237,71 @@ String expected = String.format("""
                 result
         );
     }
+    /
+     * Тест команды /delete_ex с пустыми параметрами.
+     */
+    @Test
+    void testDeleteExpenseMissingParams() {
+        String result = messageHandler.Response("/delete_ex", "", "", userData);
+        String expected = "Ошибка! Укажите сумму и название:\n/delete_ex 1500 Продукты";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /
+     * Тест команды /delete_ex с некорректной суммой.
+     */
+    @Test
+    void testDeleteExpenseInvalidAmount() {
+        String result = messageHandler.Response("/delete_ex", "abc", "Продукты", userData);
+        String expected = "Некорректная сумма: abc";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /
+     * /delete_ex — успешное удаление
+     */
+    @Test
+    void testDeleteExpenseSuccess() {
+        messageHandler.Response("/add_ex", "1500", "Продукты", userData);
+
+        String result_add = messageHandler.Response("/expense", "", "", userData);
+        Double amount1_test = 1500.00;
+        String expected_add = String.format("""
+                Ваши расходы:
+                — Расход «Продукты» на сумму %,.2f
+                """, amount1_test);
+        Assertions.assertEquals(expected_add, result_add);
+
+        String result = messageHandler.Response("/delete_ex", "1500", "Продукты", userData);
+        Assertions.assertEquals(
+                "Расход 'Продукты' на сумму 1500.0 удален.",
+                result
+        );
+
+        String result_del = messageHandler.Response("/expense", "", "", userData);
+        String expected_del = "— Расходов пока нет";
+        Assertions.assertEquals(expected_del, result_del);
+    }
+
+    /
+     * /delete_ex — сумма не найдена
+     */
+    @Test
+    void testDeleteExpenseAmountNotFound() {
+        messageHandler.Response("/add_ex", "5000", "Продукты", userData);
+
+        String result_add = messageHandler.Response("/expense", "", "", userData);
+        Double amount1_test = 5000.00;
+        String expected_add = String.format("""
+                Ваши расходы:
+                — Расход «Продукты» на сумму %,.2f
+                """, amount1_test);
+        Assertions.assertEquals(expected_add, result_add);
+
+        String result = messageHandler.Response("/delete_ex", "1000", "Продукты", userData);
+        Assertions.assertEquals(
+                "Сумма 1000.0 не найдена в расходе 'Продукты'",
+                result
+        );
+    }
+}
