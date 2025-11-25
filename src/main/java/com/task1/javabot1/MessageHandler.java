@@ -1,6 +1,5 @@
 package com.task1.javabot1;
 
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
@@ -236,7 +235,7 @@ public class MessageHandler {
     
             for (Map.Entry<String, java.util.List<Double>> entry : userData.getExpenses().entrySet()) {
                 String name = entry.getKey();
-                java.util.List<Double> list = entry.getValue()
+                java.util.List<Double> list = entry.getValue();
                 for (Double amount : list) {
                     sb.append("— Расход «")
                             .append(name)
@@ -293,3 +292,4 @@ public class MessageHandler {
         return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";    
     }
 }
+
