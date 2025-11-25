@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/
+/**
  * Тесты для обработки финансовых команд в классе MessageHandler.
  * Проверяются основные команды: /start, /help, /add_in, /add_ex,
  * /income, /expense, /delete_in.
@@ -16,7 +16,7 @@ class MessageHandlerFinanceTests {
     private MessageHandler messageHandler;
     private UserData userData;
 
-    /
+    /**
      * Инициализация тестового окружения перед каждым тестом.
      */
     @BeforeEach
@@ -25,7 +25,7 @@ class MessageHandlerFinanceTests {
         userData = new UserData();
     }
 
-    /
+    /**
      * Тест команды /add_in с пустыми параметрами.
      */
     @Test
@@ -35,7 +35,7 @@ class MessageHandlerFinanceTests {
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * Тест команды /add_in с некорректной суммой.
      */
     @Test
@@ -45,7 +45,7 @@ class MessageHandlerFinanceTests {
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * /add_in — успешное добавление
      */
     @Test
@@ -67,7 +67,7 @@ class MessageHandlerFinanceTests {
 
     }
 
-    /
+    /**
      * Тест команды /add_ex с пустыми параметрами.
      */
     @Test
@@ -77,7 +77,7 @@ class MessageHandlerFinanceTests {
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * Тест команды /add_ex с некорректной суммой.
      */
     @Test
@@ -87,7 +87,7 @@ class MessageHandlerFinanceTests {
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * /add_ex — успешное добавление
      */
     @Test
@@ -109,7 +109,7 @@ class MessageHandlerFinanceTests {
         Assertions.assertEquals(expected_add, result_add);
     }
 
-    /
+    /**
      * Тест команды /income при отсутствии доходов.
      */
     @Test
@@ -119,7 +119,7 @@ class MessageHandlerFinanceTests {
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * /income — есть доходы
      */
     @Test
@@ -139,7 +139,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * Тест команды /expense при отсутствии расходов.
      */
     @Test
@@ -149,7 +149,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * /expense — есть расходы
      */
     @Test
@@ -170,7 +170,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * Тест команды /delete_in с пустыми параметрами.
      */
     @Test
@@ -180,7 +180,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * Тест команды /delete_in с некорректной суммой.
      */
     @Test
@@ -190,7 +190,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * /delete_in — успешное удаление
      */
     @Test
@@ -216,7 +216,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected_del, result_del);
     }
 
-    /
+    /**
      * /delete_in — сумма не найдена
      */
     @Test
@@ -237,7 +237,7 @@ String expected = String.format("""
                 result
         );
     }
-    /
+    /**
      * Тест команды /delete_ex с пустыми параметрами.
      */
     @Test
@@ -247,7 +247,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * Тест команды /delete_ex с некорректной суммой.
      */
     @Test
@@ -257,7 +257,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected, result);
     }
 
-    /
+    /**
      * /delete_ex — успешное удаление
      */
     @Test
@@ -283,7 +283,7 @@ String expected = String.format("""
         Assertions.assertEquals(expected_del, result_del);
     }
 
-    /
+    /**
      * /delete_ex — сумма не найдена
      */
     @Test
