@@ -176,23 +176,14 @@ public class MessageHandler {
      */
     public String Response(String command, String parameter_amount, String parameter_name, UserData userData) {
 
-    // 
-    // /start
-    // 
     if ("/start".equals(command)) {
         return START_MESSAGE;
     }
 
-    // 
-    // /help
-    // 
     if ("/help".equals(command)) {
         return HELP_MESSAGE;
     }
 
-    // 
-    // /add_in (добавить доход)
-    // 
     if ("/add_in".equals(command)) {
         if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
             return "Ошибка! Укажите сумму и название. Пример:\n/add_in 50000 Зарплата";
@@ -207,9 +198,6 @@ public class MessageHandler {
         }
     }
 
-    // 
-    // /add_ex (добавить расход)
-    //
     if ("/add_ex".equals(command)) {
         if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
             return "Ошибка! Укажите сумму и название. Пример:\n/add_ex 1500 Продукты";
@@ -224,9 +212,6 @@ public class MessageHandler {
         }
     }
 
-    // 
-    // /income (список доходов)
-    // 
     if ("/income".equals(command)) {
 
         if (!userData.hasIncomes()) {
@@ -251,9 +236,7 @@ public class MessageHandler {
         return sb.toString();
     }
 
-    // 
-    // /expense (список расходов)
-    // 
+
     if ("/expense".equals(command)) {
 
         if (!userData.hasExpenses()) {
@@ -278,9 +261,6 @@ public class MessageHandler {
         return sb.toString();
     }
 
-    // 
-    // /delete_in (удалить доход)
-    // 
     if ("/delete_in".equals(command)) {
 
         if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
@@ -295,9 +275,6 @@ public class MessageHandler {
         }
     }
 
-    // 
-    // /delete_ex (удалить расход)
-    // 
     if ("/delete_ex".equals(command)) {
 
         if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
@@ -312,9 +289,6 @@ public class MessageHandler {
         }
     }
 
-    // 
-    // /balance (текущий баланс)
-    // 
     if ("/balance".equals(command)) {
 
         double incomeSum = userData.getIncomes()
@@ -336,8 +310,7 @@ public class MessageHandler {
         return "Текущий баланс: " + String.format("%,.2f", balance);
     }
 
-    // 
-    // НЕИЗВЕСТНАЯ КОМАНДА
-    // 
+
     return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
 }
+
