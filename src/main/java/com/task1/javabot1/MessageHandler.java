@@ -175,15 +175,142 @@ public class MessageHandler {
      * @return выбранный текстовый ответ
      */
     public String Response(String command, String parameter_amount, String parameter_name, UserData userData) {
-        if ("/start".equals(command)) {
-            return START_MESSAGE;
-        } else if ("/help".equals(command)) {
-            return HELP_MESSAGE;
-        } else {
-            return """
-                    Неизвестная команда.
-                    Введите /help для просмотра доступных команд.""";
+
+    if ("/start".equals(command)) {
+        return START_MESSAGE;
+    }
+
+    if ("/help".equals(command)) {
+        return HELP_MESSAGE;
+    }
+
+    if ("/add_in".equals(command)) {
+        if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
+            return "Ошибка! Укажите сумму и название. Пример:\n/add_in 50000 Зарплата";
+        }
+
+        try {
+            double amount = Double.parseDouble(parameter_amount);
+            return userData.addIncome(parameter_name, amount)
+                    .formatted(parameter_name, amount);
+        } catch (NumberFormatException e) {
+            return "Некорректная сумма: " + parameter_amount;
         }
     }
+
+    if ("/add_ex".equals(command)) {
+        if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
+            return "Ошибка! Укажите сумму и название. Пример:\n/add_ex 1500 Продукты";
+        }
+
+        try {
+            double amount = Double.parseDouble(parameter_amount);
+            return userData.addExpense(parameter_name, amount)
+                    .formatted(parameter_name, amount);
+        } catch (NumberFormatException e) {
+            return "Некорректная сумма: " + parameter_amount;
+        }
+    }
+
+    if ("/income".equals(command)) {
+
+        if (!userData.hasIncomes()) {
+            return "— Доходов пока нет";
+        }
+
+        StringBuilder sb = new StringBuilder("Ваши доходы:\n");
+
+        for (Map.Entry<String, java.util.List<Double>> entry : userData.getIncomes().entrySet()) {
+            String name = entry.getKey();
+            java.util.List<Double> list = entry.getValue();
+
+            for (Double amount : list) {
+                sb.append("— Доход «")
+                        .append(name)
+                        .append("» на сумму ")
+                        .append(String.format("%,.2f", amount))
+                        .append("\n");
+            }
+        }
+
+        return sb.toString();
+    }
+
+
+    if ("/expense".equals(command)) {
+
+        if (!userData.hasExpenses()) {
+            return "— Расходов пока нет";
+        }
+
+        StringBuilder sb = new StringBuilder("Ваши расходы:\n");
+
+        for (Map.Entry<String, java.util.List<Double>> entry : userData.getExpenses().entrySet()) {
+            String name = entry.getKey();
+            java.util.List<Double> list = entry.getValue();
+
+            for (Double amount : list) {
+                sb.append("— Расход «")
+                        .append(name)
+                        .append("» на сумму ")
+                        .append(String.format("%,.2f", amount))
+                        .append("\n");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    if ("/delete_in".equals(command)) {
+
+        if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
+            return "Ошибка! Укажите сумму и название:\n/delete_in 25000 Премия";
+        }
+
+        try {
+            double amount = Double.parseDouble(parameter_amount);
+            return userData.deleteIncome(parameter_name, amount);
+        } catch (NumberFormatException e) {
+            return "Некорректная сумма: " + parameter_amount;
+        }
+    }
+
+    if ("/delete_ex".equals(command)) {
+
+        if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
+            return "Ошибка! Укажите сумму и название:\n/delete_ex 1500 Продукты";
+        }
+
+        try {
+            double amount = Double.parseDouble(parameter_amount);
+            return userData.deleteExpense(parameter_name, amount);
+        } catch (NumberFormatException e) {
+            return "Некорректная сумма: " + parameter_amount;
+        }
+    }
+
+    if ("/balance".equals(command)) {
+
+        double incomeSum = userData.getIncomes()
+                .values()
+                .stream()
+                .flatMap(java.util.List::stream)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+
+        double expenseSum = userData.getExpenses()
+                .values()
+                .stream()
+                .flatMap(java.util.List::stream)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+
+        double balance = incomeSum - expenseSum;
+
+        return "Текущий баланс: " + String.format("%,.2f", balance);
+    }
+
+
+    return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
 }
 
