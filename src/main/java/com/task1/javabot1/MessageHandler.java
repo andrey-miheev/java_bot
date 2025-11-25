@@ -105,7 +105,7 @@ public class MessageHandler {
         /**
          * Возвращает параметр команды - название операции.
          *
-         * @return команда в виде строки
+         * @return название операции виде строки
          */
         public String getParameterName(){
             return parameter_name;
@@ -114,7 +114,7 @@ public class MessageHandler {
         /**
          * Возвращает параметр команды - сумма операции.
          *
-         * @return команда в виде строки
+         * @return сумма операции в виде строки
          */
         public String getParameterAmount(){
             return parameter_amount;
@@ -126,7 +126,7 @@ public class MessageHandler {
      * Разделяет входную строку по первому пробелу, если он присутствует.
      *
      * @param userInput пользовательский ввод для парсинга
-     * @return объект CommandParts с разобранной командой и параметром
+     * @return объект CommandParts с разобранной командой и параметрами
      */
     private CommandParts parseCommand(String userInput){
         if (userInput.isBlank()){
@@ -174,6 +174,7 @@ public class MessageHandler {
      * @return выбранный текстовый ответ
      */
     public String Response(String command, String parameter_amount, String parameter_name, UserData userData) {
+
         if ("/start".equals(command)) {
             return START_MESSAGE;
         }
@@ -216,6 +217,7 @@ public class MessageHandler {
             for (Map.Entry<String, java.util.List<Double>> entry : userData.getIncomes().entrySet()) {
                 String name = entry.getKey();
                 java.util.List<Double> list = entry.getValue();
+    
                 for (Double amount : list) {
                     sb.append("— Доход «")
                             .append(name)
@@ -226,13 +228,12 @@ public class MessageHandler {
             }
             return sb.toString();
         }
-        
+    
         if ("/expense".equals(command)) {
             if (!userData.hasExpenses()) {
                 return "— Расходов пока нет";
             }
             StringBuilder sb = new StringBuilder("Ваши расходы:\n");
-    
             for (Map.Entry<String, java.util.List<Double>> entry : userData.getExpenses().entrySet()) {
                 String name = entry.getKey();
                 java.util.List<Double> list = entry.getValue();
@@ -258,8 +259,8 @@ public class MessageHandler {
                 return "Некорректная сумма: " + parameter_amount;
             }
         }
-    
-        if ("/delete_ex".equals(command)) {    
+            
+        if ("/delete_ex".equals(command)) {
             if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
                 return "Ошибка! Укажите сумму и название:\n/delete_ex 1500 Продукты";
             }
@@ -278,18 +279,18 @@ public class MessageHandler {
                     .flatMap(java.util.List::stream)
                     .mapToDouble(Double::doubleValue)
                     .sum();
-    
             double expenseSum = userData.getExpenses()
                     .values()
                     .stream()
                     .flatMap(java.util.List::stream)
                     .mapToDouble(Double::doubleValue)
                     .sum();
-    
             double balance = incomeSum - expenseSum;
             return "Текущий баланс: " + String.format("%,.2f", balance);
         }
-        return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";    
+            
+        return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
     }
 }
+
 
