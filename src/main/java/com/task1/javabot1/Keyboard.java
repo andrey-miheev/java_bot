@@ -22,36 +22,32 @@ public class Keyboard {
 
         List<KeyboardRow> rows = new ArrayList<>();
 
+
         KeyboardRow row1 = new KeyboardRow();
-        row1.add("/add_in");
-        row1.add("/add_ex");
+        row1.add("Список доходов");
+        row1.add("Список расходов");
 
         KeyboardRow row2 = new KeyboardRow();
-        row2.add("/income");
-        row2.add("/expense");
+        row2.add("Баланс");
+        row2.add("Статистика");
 
         KeyboardRow row3 = new KeyboardRow();
-        row3.add("/balance");
-        row3.add("/statistic");
+        row3.add("Топ доходов");
+        row3.add("Топ расходов");
 
         KeyboardRow row4 = new KeyboardRow();
-        row4.add("/top_in");
-        row4.add("/top_exp");
+        row4.add("Сумма доходов");
+        row4.add("Сумма расходов");
 
         KeyboardRow row5 = new KeyboardRow();
-        row5.add("/sum_income");
-        row5.add("/sum_expense");
-
-        KeyboardRow row6 = new KeyboardRow();
-        row6.add("/count_ops");
-        row6.add("/help");
+        row5.add("Количество операций");
+        row5.add("Помощь");
 
         rows.add(row1);
         rows.add(row2);
         rows.add(row3);
         rows.add(row4);
         rows.add(row5);
-        rows.add(row6);
 
         keyboard.setKeyboard(rows);
         return keyboard;
