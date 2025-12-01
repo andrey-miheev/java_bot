@@ -36,7 +36,7 @@ public class UserData {
     public String addIncome(String name, Double amount) {
         String trimmedName = name.trim();
         incomes.computeIfAbsent(trimmedName, k -> new ArrayList<>()).add(amount);
-        return "Доход %s на сумму %,.2f добавлен.%n.";
+        return "Доход «%s» на сумму %,.2f добавлен.";
     }
 
     /**
@@ -48,7 +48,7 @@ public class UserData {
     public String addExpense(String name, Double amount) {
         String trimmedName = name.trim();
         expenses.computeIfAbsent(trimmedName, k -> new ArrayList<>()).add(amount);
-        return "Расход %s на сумму %,.2f добавлен.%n.";
+        return "Расход «%s» на сумму %,.2f добавлен.";
     }
 
     /**
@@ -68,10 +68,10 @@ public class UserData {
             if (amounts.isEmpty()) {
                 incomes.remove(trimmedName);
             }
-            return "Доход '" + trimmedName + "' на сумму " + amount + " удален.";
+            return "Доход «" + trimmedName + "» на сумму " + amount + " удален.";
         }
         else {
-            return "Сумма " + amount + " не найдена в доходе '" + trimmedName + "'";
+            return "Сумма " + amount + " не найдена в доходе «" + trimmedName + "»";
         }
     }
 
@@ -92,10 +92,10 @@ public class UserData {
             if (amounts.isEmpty()) {
                 expenses.remove(trimmedName);
             }
-            return "Расход '" + trimmedName + "' на сумму " + amount + " удален.";
+            return "Расход «" + trimmedName + "» на сумму " + amount + " удален.";
         }
         else {
-            return "Сумма " + amount + " не найдена в расходе '" + trimmedName + "'";
+            return "Сумма " + amount + " не найдена в расходе «" + trimmedName + "»";
         }
     }
 
