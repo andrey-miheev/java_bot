@@ -25,7 +25,14 @@ public class MyTelegramBot extends TelegramLongPollingBot {
             sendMessage(chatId,response);
         }
     }
-
+    
+    /**
+     * Преобразует текст кнопки в соответствующую команду бота.
+     * Если текст не совпадает ни с одной кнопкой — возвращает его без изменений.
+     *
+     * @param input текст, пришедший от пользователя
+     * @return строка с командой вида /command или исходный текст
+     */
     private String mapButtonToCommand(String input) {
         return switch (input) {
             case "Список доходов" -> "/income";
@@ -73,6 +80,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
     }
 
 }
+
 
 
 
