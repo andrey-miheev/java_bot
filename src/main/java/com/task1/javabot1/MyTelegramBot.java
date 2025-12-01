@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  */
 public class MyTelegramBot extends TelegramLongPollingBot {
     private final MessageHandler messageHandler = new MessageHandler();
+    private final Keyboard keyboard = new Keyboard();
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -35,6 +36,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         message.setText(text);
+        message.setReplyMarkup(keyboard.mainKeyboard())
 
         try{
             execute(message);
@@ -55,3 +57,4 @@ public class MyTelegramBot extends TelegramLongPollingBot {
     }
 
 }
+
