@@ -36,7 +36,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         message.setText(text);
-        message.setReplyMarkup(keyboard.mainKeyboard())
+        message.setReplyMarkup(keyboard.mainKeyboard());
 
         try{
             execute(message);
@@ -57,4 +57,5 @@ public class MyTelegramBot extends TelegramLongPollingBot {
     }
 
 }
+
 
