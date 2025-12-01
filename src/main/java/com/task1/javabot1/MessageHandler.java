@@ -1,5 +1,7 @@
 package com.task1.javabot1;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
@@ -25,6 +27,12 @@ public class MessageHandler {
             /expense — список расходов
             /delete_in — удалить запись доходов
             /delete_ex — удалить запись расходов
+            /statistic — выводит сумму расходов, доходов и оставшийся бюджет
+            /top_exp — выводит 3 самых больших расхода
+            /top_in — выводит 3 самых больших дохода
+            /sum_income — Показывает общий доход
+            /sum_expense — Показывает общий расход
+            /count_ops — показывает количество доходов, расходов и операций
             /help — помощь по командам
             """;
 
@@ -43,30 +51,67 @@ public class MessageHandler {
                 /expense — список расходов
                 /delete_in — удалить запись доходов
                 /delete_ex — удалить запись расходов
+                /statistic — выводит сумму расходов, доходов и оставшийся бюджет
+                /top_exp — выводит 3 самых больших расхода
+                /top_in — выводит 3 самых больших дохода
+                /sum_income — Показывает общий доход
+                /sum_expense — Показывает общий расход
+                /count_ops — показывает количество доходов, расходов и операций
                 /help — помощь по командам
             
                 Например:
                 /add_in 50000 Зарплата
-                – Доход “Зарплата” на сумму 50000 добавлен.
+                – Доход «Зарплата» на сумму 50000 добавлен.
             
                 /add_in 25000 Премия
-                – Доход “Премия” на сумму 25000 добавлен.
+                – Доход «Премия» на сумму 25000 добавлен.
+                
+                /add_in 30000 Подарок
+                – Доход «Подарок» на сумму 30000 добавлен.
             
                 /add_ex 1500 Продукты
-                – Расход “Продукты” на сумму 1500 добавлен.
+                – Расход «Продукты» на сумму 1500 добавлен.
             
                 /income
                 — Доход «Зарплата» на сумму 50000
                 — Доход «Премия» на сумму 25000
+                — Доход «Подарок» на сумму 30000
             
                 /expense
                 — Расход «Продукты» на сумму 1500
+                
+                /statistic
+                📊 Статистика:
+                — Сумма доходов: 105000,00
+                — Сумма расходов: 1500,00
+                — Оставшийся бюджет: 103 500,00
+            
+                /top_ex
+                📉 Топ-3 самых больших расходов:
+                — «Продукты» на сумму 1500,00
+            
+                /top_in
+                📈 Топ-3 самых больших доходов:
+                — «Зарплата» на сумму 50000,00
+                — «Подарок» на сумму 30000,00
+                — «Премия» на сумму 25000,00
+            
+                /sum_income
+                💰 Сумма доходов: 105000,00
+            
+                /sum_expense
+                💸 Сумма расходов: 1500,00
+            
+                /count_ops
+                Количество доходов: 3
+                Количество расходов: 1
+                Количество операций: 4
             
                 /balance
-                Текущий баланс: 73500
+                Текущий баланс: 103500,00
             
                 /delete_ex 1500 Продукты
-                Расход “Продукты” на сумму 1500 удален
+                Расход «Продукты» на сумму 1500.0 удален
             
             """;
 
@@ -288,9 +333,111 @@ public class MessageHandler {
             double balance = incomeSum - expenseSum;
             return "Текущий баланс: " + String.format("%,.2f", balance);
         }
-            
+
+        if ("/statistic".equals(command)) {
+            double incomeSum = userData.getIncomes()
+                    .values()
+                    .stream()
+                    .flatMap(java.util.List::stream)
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            double expenseSum = userData.getExpenses()
+                    .values()
+                    .stream()
+                    .flatMap(java.util.List::stream)
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            double balance = incomeSum - expenseSum;
+            return String.format("📊 Статистика:\n" +
+                            "— Сумма доходов: %,.2f\n" +
+                            "— Сумма расходов: %,.2f\n" +
+                            "— Оставшийся бюджет: %,.2f",
+                    incomeSum, expenseSum, balance);
+        }
+
+        if ("/top_exp".equals(command)) {
+            if (!userData.hasExpenses()) {
+                return "— Расходов пока нет";
+            }
+            List<Map.Entry<String, Double>> allExpenses = new ArrayList<>();
+            for (Map.Entry<String, List<Double>> entry : userData.getExpenses().entrySet()) {
+                String name = entry.getKey();
+                for (Double amount : entry.getValue()) {
+                    allExpenses.add(new java.util.AbstractMap.SimpleEntry<>(name, amount));
+                }
+            }
+            allExpenses.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+            StringBuilder top_three_exp = new StringBuilder("📉 Топ-3 самых больших расходов:\n");
+            int count = Math.min(3, allExpenses.size());
+            for (int i = 0; i < count; i++) {
+                Map.Entry<String, Double> expense = allExpenses.get(i);
+                top_three_exp.append(String.format("— «%s» на сумму %,.2f\n",
+                        expense.getKey(), expense.getValue()));
+            }
+            return top_three_exp.toString();
+        }
+
+        if ("/top_in".equals(command)) {
+            if (!userData.hasIncomes()) {
+                return "— Доходов пока нет";
+            }
+            List<Map.Entry<String, Double>> allIncomes = new ArrayList<>();
+            for (Map.Entry<String, List<Double>> entry : userData.getIncomes().entrySet()) {
+                String name = entry.getKey();
+                for (Double amount : entry.getValue()) {
+                    allIncomes.add(new java.util.AbstractMap.SimpleEntry<>(name, amount));
+                }
+            }
+            allIncomes.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+            StringBuilder top_three_in = new StringBuilder("📈 Топ-3 самых больших доходов:\n");
+            int count = Math.min(3, allIncomes.size());
+            for (int i = 0; i < count; i++) {
+                Map.Entry<String, Double> income = allIncomes.get(i);
+                top_three_in.append(String.format("— «%s» на сумму %,.2f\n",
+                        income.getKey(), income.getValue()));
+            }
+            return top_three_in.toString();
+        }
+
+        if ("/sum_income".equals(command)) {
+            double incomeSum = userData.getIncomes()
+                    .values()
+                    .stream()
+                    .flatMap(java.util.List::stream)
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            return "💰 Сумма доходов: " + String.format("%,.2f", incomeSum);
+        }
+
+        if ("/sum_expense".equals(command)) {
+            double expenseSum = userData.getExpenses()
+                    .values()
+                    .stream()
+                    .flatMap(java.util.List::stream)
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            return "💸 Сумма расходов: " + String.format("%,.2f", expenseSum);
+        }
+
+        if ("/count_ops".equals(command)) {
+            int incomeCount = userData.getIncomes()
+                    .values()
+                    .stream()
+                    .mapToInt(List::size)
+                    .sum();
+            int expenseCount = userData.getExpenses()
+                    .values()
+                    .stream()
+                    .mapToInt(List::size)
+                    .sum();
+            int totalOps = incomeCount + expenseCount;
+
+            return String.format("Количество доходов: %d\n" +
+                            "Количество расходов: %d\n" +
+                            "Количество операций: %d",
+                    incomeCount, expenseCount, totalOps);
+        }
+
         return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
     }
 }
-
-
