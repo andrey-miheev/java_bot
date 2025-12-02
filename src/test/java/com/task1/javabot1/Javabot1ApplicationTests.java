@@ -7,7 +7,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Тесты для обработки финансовых команд в классе MessageHandler.
  * Проверяются основные команды: /start, /help, /add_in, /add_ex,
- * /income, /expense, /delete_in.
+ * /income, /expense, /delete_in, /statistic, /top_ex, /top_in, 
+ * /sum_income, /sum_expense, /count_ops
  *
  * @see MessageHandler
  */
@@ -52,8 +53,8 @@ class MessageHandlerFinanceTests {
     void testAddIncomeSuccess() {
         String result = messageHandler.Response("/add_in", "50000", "Зарплата", userData);
 
-        String expected = "Доход %s на сумму %,.2f добавлен.%n."
-                .formatted("Зарплата", 50000.0);
+        String expected = "Доход «Зарплата» на сумму %,.2f добавлен."
+                .formatted(50000.0);
         Assertions.assertEquals(expected, result);
         String result_add = messageHandler.Response("/income", "", "", userData);
         Double amount_test = 50000.00;
@@ -94,8 +95,8 @@ class MessageHandlerFinanceTests {
     void testAddExpenseSuccess() {
         String result = messageHandler.Response("/add_ex", "1500", "Продукты", userData);
 
-        String expected = "Расход %s на сумму %,.2f добавлен.%n."
-                .formatted("Продукты", 1500.0);
+        String expected = "Расход «Продукты» на сумму %,.2f добавлен."
+                .formatted(1500.0);
 
         Assertions.assertEquals(expected, result);
         String result_add = messageHandler.Response("/expense", "", "", userData);
@@ -207,7 +208,7 @@ class MessageHandlerFinanceTests {
 
         String result = messageHandler.Response("/delete_in", "25000", "Премия", userData);
         Assertions.assertEquals(
-                "Доход 'Премия' на сумму 25000.0 удален.",
+                "Доход «Премия» на сумму 25000.0 удален.",
                 result
         );
 
@@ -233,7 +234,7 @@ class MessageHandlerFinanceTests {
 
         String result = messageHandler.Response("/delete_in", "1000", "Бонус", userData);
         Assertions.assertEquals(
-                "Сумма 1000.0 не найдена в доходе 'Бонус'",
+                "Сумма 1000.0 не найдена в доходе «Бонус»",
                 result
         );
     }
@@ -274,7 +275,7 @@ class MessageHandlerFinanceTests {
 
         String result = messageHandler.Response("/delete_ex", "1500", "Продукты", userData);
         Assertions.assertEquals(
-                "Расход 'Продукты' на сумму 1500.0 удален.",
+                "Расход «Продукты» на сумму 1500.0 удален.",
                 result
         );
 
@@ -300,8 +301,183 @@ class MessageHandlerFinanceTests {
 
         String result = messageHandler.Response("/delete_ex", "1000", "Продукты", userData);
         Assertions.assertEquals(
-                "Сумма 1000.0 не найдена в расходе 'Продукты'",
+                "Сумма 1000.0 не найдена в расходе «Продукты»",
                 result
         );
+    }
+
+    /**
+     * Тест команды /statistic при отсутствии операций.
+     */
+    @Test
+    void testStatisticEmpty() {
+        String result = messageHandler.Response("/statistic", "", "", userData);
+        String expected = String.format("📊 Статистика:\n" +
+                "— Сумма доходов: %,.2f\n" +
+                "— Сумма расходов: %,.2f\n" +
+                "— Оставшийся бюджет: %,.2f", 0.00, 0.00, 0.00);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /statistic с доходами и расходами.
+     */
+    @Test
+    void testStatisticWithData() {
+        messageHandler.Response("/add_in", "50000", "Зарплата", userData);
+        messageHandler.Response("/add_in", "15000", "Премия", userData);
+
+        messageHandler.Response("/add_ex", "15000", "Аренда", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты", userData);
+
+        String result = messageHandler.Response("/statistic", "", "", userData);
+        String expected = String.format("📊 Статистика:\n" +
+                "— Сумма доходов: %,.2f\n" +
+                "— Сумма расходов: %,.2f\n" +
+                "— Оставшийся бюджет: %,.2f", 65000.0, 20000.0, 45000.0);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /top_ex при отсутствии расходов.
+     */
+    @Test
+    void testTopExpensesEmpty() {
+        String result = messageHandler.Response("/top_ex", "", "", userData);
+        String expected = "— Расходов пока нет";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /top_ex с несколькими расходами.
+     */
+    @Test
+    void testTopExpensesWithData() {
+        // Добавляем расходы в разном порядке
+        messageHandler.Response("/add_ex", "1000", "Кофе", userData);
+        messageHandler.Response("/add_ex", "50000", "Аренда", userData);
+        messageHandler.Response("/add_ex", "15000", "Продукты", userData);
+        messageHandler.Response("/add_ex", "2000", "Транспорт", userData);
+        messageHandler.Response("/add_ex", "30000", "Кредит", userData);
+
+        String result = messageHandler.Response("/top_ex", "", "", userData);
+        String expected = String.format("📉 Топ-3 самых больших расходов:\n" +
+                "— «Аренда» на сумму %,.2f\n" +
+                "— «Кредит» на сумму %,.2f\n" +
+                "— «Продукты» на сумму %,.2f\n", 50000.0, 30000.0, 15000.0);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /top_in при отсутствии расходов.
+     */
+    @Test
+    void testTopIncomesEmpty() {
+        String result = messageHandler.Response("/top_in", "", "", userData);
+        String expected = "— Доходов пока нет";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /top_in с несколькими расходами.
+     */
+    @Test
+    void testTopIncomesWithData() {
+        // Добавляем расходы в разном порядке
+        messageHandler.Response("/add_in", "1000", "Кофе", userData);
+        messageHandler.Response("/add_in", "50000", "Аренда", userData);
+        messageHandler.Response("/add_in", "15000", "Продукты", userData);
+        messageHandler.Response("/add_in", "2000", "Транспорт", userData);
+        messageHandler.Response("/add_in", "30000", "Кредит", userData);
+
+        String result = messageHandler.Response("/top_in", "", "", userData);
+        String expected = String.format("📈 Топ-3 самых больших доходов:\n" +
+                "— «Аренда» на сумму %,.2f\n" +
+                "— «Кредит» на сумму %,.2f\n" +
+                "— «Продукты» на сумму %,.2f\n", 50000.0, 30000.0, 15000.0);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /sum_income при отсутствии доходов.
+     */
+    @Test
+    void testSumIncomeEmpty() {
+        String result = messageHandler.Response("/sum_income", "", "", userData);
+        String expected = String.format("💰 Сумма доходов: %,.2f", 0.00);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /sum_income с доходами.
+     */
+    @Test
+    void testSumIncomeWithData() {
+        messageHandler.Response("/add_in", "50000", "Зарплата", userData);
+        messageHandler.Response("/add_in", "15000", "Премия", userData);
+        messageHandler.Response("/add_in", "10000", "Фриланс", userData);
+
+        String result = messageHandler.Response("/sum_income", "", "", userData);
+        String expected = String.format("💰 Сумма доходов: %,.2f", 75000.00);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /sum_expense при отсутствии доходов.
+     */
+    @Test
+    void testSumExpenseEmpty() {
+        String result = messageHandler.Response("/sum_expense", "", "", userData);
+        String expected = String.format("💸 Сумма расходов: %,.2f", 0.00);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /sum_expense с доходами.
+     */
+    @Test
+    void testSumExpenseWithData() {
+        messageHandler.Response("/add_ex", "50000", "Зарплата", userData);
+        messageHandler.Response("/add_ex", "15000", "Премия", userData);
+        messageHandler.Response("/add_ex", "10000", "Фриланс", userData);
+
+        String result = messageHandler.Response("/sum_expense", "", "", userData);
+        String expected = String.format("💸 Сумма расходов: %,.2f", 75000.00);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /count_ops при отсутствии операций.
+     */
+    @Test
+    void testCountOpsEmpty() {
+        String result = messageHandler.Response("/count_ops", "", "", userData);
+        String expected = String.format("Количество доходов: %d\n" +
+                "Количество расходов: %d\n" +
+                "Количество операций: %d", 0,0,0);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /count_ops с доходами и расходами.
+     */
+    @Test
+    void testCountOpsWithData() {
+        // Добавляем доходы (3 операции)
+        messageHandler.Response("/add_in", "50000", "Зарплата", userData);
+        messageHandler.Response("/add_in", "15000", "Премия", userData);
+        messageHandler.Response("/add_in", "10000", "Премия", userData); // вторая премия
+
+        // Добавляем расходы (4 операции)
+        messageHandler.Response("/add_ex", "30000", "Аренда", userData);
+        messageHandler.Response("/add_ex", "15000", "Продукты", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты", userData); // вторые продукты
+        messageHandler.Response("/add_ex", "2000", "Транспорт", userData);
+
+        String result = messageHandler.Response("/count_ops", "", "", userData);
+        String expected = String.format("Количество доходов: %d\n" +
+                "Количество расходов: %d\n" +
+                "Количество операций: %d", 3,4,7);;
+        Assertions.assertEquals(expected, result);
     }
 }
