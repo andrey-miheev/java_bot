@@ -40,7 +40,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
             case "Баланс" -> "/balance";
             case "Статистика" -> "/statistic";
             case "Топ доходов" -> "/top_in";
-            case "Топ расходов" -> "/top_exp";
+            case "Топ расходов" -> "/top_ex";
             case "Сумма доходов" -> "/sum_income";
             case "Сумма расходов" -> "/sum_expense";
             case "Количество операций" -> "/count_ops";
@@ -80,6 +80,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
     }
 
 }
+
 
 
 
