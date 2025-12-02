@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Тесты для обработки финансовых команд в классе MessageHandler.
  * Проверяются основные команды: /start, /help, /add_in, /add_ex,
- * /income, /expense, /delete_in, /statistic, /top_ex, /top_in, 
+ * /income, /expense, /delete_in, /balance, /statistic, /top_ex, /top_in,
  * /sum_income, /sum_expense, /count_ops
  *
  * @see MessageHandler
@@ -16,6 +16,7 @@ class MessageHandlerFinanceTests {
 
     private MessageHandler messageHandler;
     private UserData userData;
+    private UserData userData2;
 
     /**
      * Инициализация тестового окружения перед каждым тестом.
@@ -24,6 +25,7 @@ class MessageHandlerFinanceTests {
     void setUp() {
         messageHandler = new MessageHandler();
         userData = new UserData();
+        userData2 = new UserData();
     }
 
     /**
@@ -307,6 +309,32 @@ class MessageHandlerFinanceTests {
     }
 
     /**
+     * Тест команды /balance при отсутствии операций.
+     */
+    @Test
+    void testBalanceEmpty() {
+        String result = messageHandler.Response("/balance", "", "", userData);
+        String expected = String.format("Текущий баланс: %,.2f", 0.00);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /balance с доходами и расходами.
+     */
+    @Test
+    void testBalanceWithData() {
+        messageHandler.Response("/add_in", "50000", "Зарплата", userData);
+        messageHandler.Response("/add_in", "15000", "Премия", userData);
+
+        messageHandler.Response("/add_ex", "15000", "Аренда", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты", userData);
+
+        String result = messageHandler.Response("/balance", "", "", userData);
+        String expected = String.format("Текущий баланс: %,.2f", 45000.00);
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
      * Тест команды /statistic при отсутствии операций.
      */
     @Test
@@ -353,7 +381,6 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testTopExpensesWithData() {
-        // Добавляем расходы в разном порядке
         messageHandler.Response("/add_ex", "1000", "Кофе", userData);
         messageHandler.Response("/add_ex", "50000", "Аренда", userData);
         messageHandler.Response("/add_ex", "15000", "Продукты", userData);
@@ -383,7 +410,6 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testTopIncomesWithData() {
-        // Добавляем расходы в разном порядке
         messageHandler.Response("/add_in", "1000", "Кофе", userData);
         messageHandler.Response("/add_in", "50000", "Аренда", userData);
         messageHandler.Response("/add_in", "15000", "Продукты", userData);
@@ -463,15 +489,13 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testCountOpsWithData() {
-        // Добавляем доходы (3 операции)
         messageHandler.Response("/add_in", "50000", "Зарплата", userData);
         messageHandler.Response("/add_in", "15000", "Премия", userData);
-        messageHandler.Response("/add_in", "10000", "Премия", userData); // вторая премия
+        messageHandler.Response("/add_in", "10000", "Премия", userData);
 
-        // Добавляем расходы (4 операции)
         messageHandler.Response("/add_ex", "30000", "Аренда", userData);
         messageHandler.Response("/add_ex", "15000", "Продукты", userData);
-        messageHandler.Response("/add_ex", "5000", "Продукты", userData); // вторые продукты
+        messageHandler.Response("/add_ex", "5000", "Продукты", userData);
         messageHandler.Response("/add_ex", "2000", "Транспорт", userData);
 
         String result = messageHandler.Response("/count_ops", "", "", userData);
@@ -479,5 +503,44 @@ class MessageHandlerFinanceTests {
                 "Количество расходов: %d\n" +
                 "Количество операций: %d", 3,4,7);;
         Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест ввода неизвестной команды
+     */
+    @Test
+    void testUnknownCommand(){
+        String result = messageHandler.Response("/abcd", "", "", userData);
+        String expected = "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест на независимость данных для разных пользователей
+     */
+    @Test
+    void testDifferentUserData(){
+        messageHandler.Response("/add_in", "50000", "Зарплата", userData);
+        messageHandler.Response("/add_in", "15000", "Премия", userData);
+        messageHandler.Response("/add_in", "10000", "Премия", userData2);
+
+        messageHandler.Response("/add_ex", "30000", "Аренда", userData);
+        messageHandler.Response("/add_ex", "15000", "Продукты", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты", userData2);
+        messageHandler.Response("/add_ex", "2000", "Транспорт", userData2);
+
+        String result1 = messageHandler.Response("/statistic", "", "", userData);
+        String expected1 = String.format("📊 Статистика:\n" +
+                "— Сумма доходов: %,.2f\n" +
+                "— Сумма расходов: %,.2f\n" +
+                "— Оставшийся бюджет: %,.2f", 65000.0, 45000.0, 20000.0);
+        Assertions.assertEquals(expected1, result1);
+
+        String result2 = messageHandler.Response("/statistic", "", "", userData2);
+        String expected2 = String.format("📊 Статистика:\n" +
+                "— Сумма доходов: %,.2f\n" +
+                "— Сумма расходов: %,.2f\n" +
+                "— Оставшийся бюджет: %,.2f", 10000.0, 7000.0, 3000.0);
+        Assertions.assertEquals(expected2, result2);
     }
 }
