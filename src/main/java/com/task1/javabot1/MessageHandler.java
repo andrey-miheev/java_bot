@@ -28,7 +28,7 @@ public class MessageHandler {
             /delete_in — удалить запись доходов
             /delete_ex — удалить запись расходов
             /statistic — выводит сумму расходов, доходов и оставшийся бюджет
-            /top_exp — выводит 3 самых больших расхода
+            /top_ex — выводит 3 самых больших расхода
             /top_in — выводит 3 самых больших дохода
             /sum_income — Показывает общий доход
             /sum_expense — Показывает общий расход
@@ -52,7 +52,7 @@ public class MessageHandler {
                 /delete_in — удалить запись доходов
                 /delete_ex — удалить запись расходов
                 /statistic — выводит сумму расходов, доходов и оставшийся бюджет
-                /top_exp — выводит 3 самых больших расхода
+                /top_ex — выводит 3 самых больших расхода
                 /top_in — выводит 3 самых больших дохода
                 /sum_income — Показывает общий доход
                 /sum_expense — Показывает общий расход
@@ -84,7 +84,7 @@ public class MessageHandler {
                 📊 Статистика:
                 — Сумма доходов: 105000,00
                 — Сумма расходов: 1500,00
-                — Оставшийся бюджет: 103 500,00
+                — Оставшийся бюджет: 103500,00
             
                 /top_ex
                 📉 Топ-3 самых больших расходов:
@@ -355,7 +355,7 @@ public class MessageHandler {
                     incomeSum, expenseSum, balance);
         }
 
-        if ("/top_exp".equals(command)) {
+        if ("/top_ex".equals(command)) {
             if (!userData.hasExpenses()) {
                 return "— Расходов пока нет";
             }
@@ -367,14 +367,14 @@ public class MessageHandler {
                 }
             }
             allExpenses.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
-            StringBuilder top_three_exp = new StringBuilder("📉 Топ-3 самых больших расходов:\n");
+            StringBuilder top_three_ex = new StringBuilder("📉 Топ-3 самых больших расходов:\n");
             int count = Math.min(3, allExpenses.size());
             for (int i = 0; i < count; i++) {
                 Map.Entry<String, Double> expense = allExpenses.get(i);
-                top_three_exp.append(String.format("— «%s» на сумму %,.2f\n",
+                top_three_ex.append(String.format("— «%s» на сумму %,.2f\n",
                         expense.getKey(), expense.getValue()));
             }
-            return top_three_exp.toString();
+            return top_three_ex.toString();
         }
 
         if ("/top_in".equals(command)) {
@@ -441,3 +441,4 @@ public class MessageHandler {
         return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
     }
 }
+
