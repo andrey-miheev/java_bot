@@ -186,11 +186,9 @@ public class MessageHandler {
     String parameter_name = "";
 
     if (parts.length == 2) {
-        // Один параметр → это название
         parameter_name = parts[1].trim();
     } 
     else if (parts.length == 3) {
-        // Два параметра → первый сумма, второй название
         parameter_amount = parts[1].trim();
         parameter_name = parts[2].trim();
     }
@@ -233,76 +231,92 @@ public class MessageHandler {
         if ("/start".equals(command)) {
             return START_MESSAGE;
         }
-    
+
         if ("/help".equals(command)) {
             return HELP_MESSAGE;
         }
-    
+
+        if ("/cat_in".equals(command)) {
+            return userData.showIncomeCategories();
+        }
+
+        if ("/cat_ex".equals(command)) {
+            return userData.showExpenseCategories();
+        }
+
+        if ("/add_cat_in".equals(command)) {
+            if (parameter_name.isEmpty()) {
+                return "Ошибка! Укажите название категории.\nПример: /add_cat_in инвестиции";
+            }
+            return userData.addIncomeCategory(parameter_name);
+        }
+
+        if ("/add_cat_ex".equals(command)) {
+            if (parameter_name.isEmpty()) {
+                return "Ошибка! Укажите название категории.\nПример: /add_cat_ex кафе";
+            }
+            return userData.addExpenseCategory(parameter_name);
+        }
+
+        if ("/del_cat_in".equals(command)) {
+            if (parameter_name.isEmpty()) {
+                return "Ошибка! Укажите название категории.\nПример: /del_cat_in инвестиции";
+            }
+            return userData.deleteIncomeCategory(parameter_name);
+        }
+
+        if ("/del_cat_ex".equals(command)) {
+            if (parameter_name.isEmpty()) {
+                return "Ошибка! Укажите название категории.\nПример: /del_cat_ex кафе";
+            }
+            return userData.deleteExpenseCategory(parameter_name);
+        }
+
         if ("/add_in".equals(command)) {
-            if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
-                return "Ошибка! Укажите сумму и название. Пример:\n/add_in 50000 Зарплата";
+            String[] parts = parameter_name.split(" ", 2);
+            if (parameter_amount.isEmpty() || parts.length < 2) {
+                return "Ошибка! Укажите сумму, название и категорию.\n" +
+                        "Пример: /add_in 50000 Зарплата работа";
             }
+
             try {
                 double amount = Double.parseDouble(parameter_amount);
-                return userData.addIncome(parameter_name, amount)
-                        .formatted(parameter_name, amount);
+                String name = parts[0];
+                String category = parts[1];
+                return userData.addIncome(name, amount, category);
             } catch (NumberFormatException e) {
                 return "Некорректная сумма: " + parameter_amount;
             }
         }
-    
+
         if ("/add_ex".equals(command)) {
-            if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
-                return "Ошибка! Укажите сумму и название. Пример:\n/add_ex 1500 Продукты";
+            String[] parts = parameter_name.split(" ", 2);
+            if (parameter_amount.isEmpty() || parts.length < 2) {
+                return "Ошибка! Укажите сумму, название и категорию.\n" +
+                        "Пример: /add_ex 1500 Продукты еда";
             }
             try {
                 double amount = Double.parseDouble(parameter_amount);
-                return userData.addExpense(parameter_name, amount)
-                        .formatted(parameter_name, amount);
+                String name = parts[0];
+                String category = parts[1];
+                return userData.addExpense(name, amount, category);
             } catch (NumberFormatException e) {
                 return "Некорректная сумма: " + parameter_amount;
             }
         }
-    
+
         if ("/income".equals(command)) {
-            if (!userData.hasIncomes()) {
-                return "— Доходов пока нет";
-            }
-            StringBuilder sb = new StringBuilder("Ваши доходы:\n");
-            for (Map.Entry<String, java.util.List<Double>> entry : userData.getIncomes().entrySet()) {
-                String name = entry.getKey();
-                java.util.List<Double> list = entry.getValue();
-    
-                for (Double amount : list) {
-                    sb.append("— Доход «")
-                            .append(name)
-                            .append("» на сумму ")
-                            .append(String.format("%,.2f", amount))
-                            .append("\n");
-                }
-            }
-            return sb.toString();
+            return userData.showIncomes();
         }
-    
+
         if ("/expense".equals(command)) {
-            if (!userData.hasExpenses()) {
-                return "— Расходов пока нет";
-            }
-            StringBuilder sb = new StringBuilder("Ваши расходы:\n");
-            for (Map.Entry<String, java.util.List<Double>> entry : userData.getExpenses().entrySet()) {
-                String name = entry.getKey();
-                java.util.List<Double> list = entry.getValue();
-                for (Double amount : list) {
-                    sb.append("— Расход «")
-                            .append(name)
-                            .append("» на сумму ")
-                            .append(String.format("%,.2f", amount))
-                            .append("\n");
-                }
-            }
-            return sb.toString();
+            return userData.showExpenses();
         }
-    
+
+        if ("/statistic".equals(command)) {
+            return userData.getStatistics();
+        }
+
         if ("/delete_in".equals(command)) {
             if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
                 return "Ошибка! Укажите сумму и название:\n/delete_in 25000 Премия";
@@ -314,7 +328,7 @@ public class MessageHandler {
                 return "Некорректная сумма: " + parameter_amount;
             }
         }
-            
+
         if ("/delete_ex".equals(command)) {
             if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
                 return "Ошибка! Укажите сумму и название:\n/delete_ex 1500 Продукты";
@@ -326,130 +340,92 @@ public class MessageHandler {
                 return "Некорректная сумма: " + parameter_amount;
             }
         }
-    
+
         if ("/balance".equals(command)) {
-            double incomeSum = userData.getIncomes()
-                    .values()
-                    .stream()
-                    .flatMap(java.util.List::stream)
-                    .mapToDouble(Double::doubleValue)
+            List<Operation> incomes = userData.getAllIncomes();
+            List<Operation> expenses = userData.getAllExpenses();
+
+            double incomeSum = incomes.stream()
+                    .mapToDouble(Operation::getAmount)
                     .sum();
-            double expenseSum = userData.getExpenses()
-                    .values()
-                    .stream()
-                    .flatMap(java.util.List::stream)
-                    .mapToDouble(Double::doubleValue)
+            double expenseSum = expenses.stream()
+                    .mapToDouble(Operation::getAmount)
                     .sum();
             double balance = incomeSum - expenseSum;
+
             return "Текущий баланс: " + String.format("%,.2f", balance);
         }
-
-        if ("/statistic".equals(command)) {
-            double incomeSum = userData.getIncomes()
-                    .values()
-                    .stream()
-                    .flatMap(java.util.List::stream)
-                    .mapToDouble(Double::doubleValue)
-                    .sum();
-            double expenseSum = userData.getExpenses()
-                    .values()
-                    .stream()
-                    .flatMap(java.util.List::stream)
-                    .mapToDouble(Double::doubleValue)
-                    .sum();
-            double balance = incomeSum - expenseSum;
-            return String.format("📊 Статистика:\n" +
-                            "— Сумма доходов: %,.2f\n" +
-                            "— Сумма расходов: %,.2f\n" +
-                            "— Оставшийся бюджет: %,.2f",
-                    incomeSum, expenseSum, balance);
-        }
-
-        if ("/top_ex".equals(command)) {
-            if (!userData.hasExpenses()) {
+        if ("/top_exp".equals(command)) {
+            List<Operation> allExpenses = userData.getAllExpenses();
+            if (allExpenses.isEmpty()) {
                 return "— Расходов пока нет";
             }
-            List<Map.Entry<String, Double>> allExpenses = new ArrayList<>();
-            for (Map.Entry<String, List<Double>> entry : userData.getExpenses().entrySet()) {
-                String name = entry.getKey();
-                for (Double amount : entry.getValue()) {
-                    allExpenses.add(new java.util.AbstractMap.SimpleEntry<>(name, amount));
-                }
-            }
-            allExpenses.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
-            StringBuilder top_three_ex = new StringBuilder("📉 Топ-3 самых больших расходов:\n");
+
+            allExpenses.sort((a, b) -> Double.compare(b.getAmount(), a.getAmount()));
+
+            StringBuilder top_three_ex = new StringBuilder("📉 Топ-3 самых больших расходов:\\n");
             int count = Math.min(3, allExpenses.size());
             for (int i = 0; i < count; i++) {
-                Map.Entry<String, Double> expense = allExpenses.get(i);
-                top_three_ex.append(String.format("— «%s» на сумму %,.2f\n",
-                        expense.getKey(), expense.getValue()));
+                Operation expense = allExpenses.get(i);
+                top_three_ex.append(String.format("— «%s» на сумму %,.2f (категория: %s)\n",
+                        expense.getName(), expense.getAmount(), expense.getCategory()));
             }
-            return top_three_ex.toString();
+
+            return top_three_ex.toString().trim();
         }
 
         if ("/top_in".equals(command)) {
-            if (!userData.hasIncomes()) {
+            List<Operation> allIncomes = userData.getAllIncomes();
+            if (allIncomes.isEmpty()) {
                 return "— Доходов пока нет";
             }
-            List<Map.Entry<String, Double>> allIncomes = new ArrayList<>();
-            for (Map.Entry<String, List<Double>> entry : userData.getIncomes().entrySet()) {
-                String name = entry.getKey();
-                for (Double amount : entry.getValue()) {
-                    allIncomes.add(new java.util.AbstractMap.SimpleEntry<>(name, amount));
-                }
-            }
-            allIncomes.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
-            StringBuilder top_three_in = new StringBuilder("📈 Топ-3 самых больших доходов:\n");
+
+            allIncomes.sort((a, b) -> Double.compare(b.getAmount(), a.getAmount()));
+
+            StringBuilder sb = new StringBuilder("📈 Топ-3 самых больших доходов:\\n");
             int count = Math.min(3, allIncomes.size());
             for (int i = 0; i < count; i++) {
-                Map.Entry<String, Double> income = allIncomes.get(i);
-                top_three_in.append(String.format("— «%s» на сумму %,.2f\n",
-                        income.getKey(), income.getValue()));
+                Operation income = allIncomes.get(i);
+                sb.append(String.format("— «%s» на сумму %,.2f (категория: %s)\n",
+                        income.getName(), income.getAmount(), income.getCategory()));
             }
-            return top_three_in.toString();
+
+            return sb.toString().trim();
         }
 
         if ("/sum_income".equals(command)) {
-            double incomeSum = userData.getIncomes()
-                    .values()
-                    .stream()
-                    .flatMap(java.util.List::stream)
-                    .mapToDouble(Double::doubleValue)
+            List<Operation> incomes = userData.getAllIncomes();
+            double incomeSum = incomes.stream()
+                    .mapToDouble(Operation::getAmount)
                     .sum();
+
             return "💰 Сумма доходов: " + String.format("%,.2f", incomeSum);
         }
 
         if ("/sum_expense".equals(command)) {
-            double expenseSum = userData.getExpenses()
-                    .values()
-                    .stream()
-                    .flatMap(java.util.List::stream)
-                    .mapToDouble(Double::doubleValue)
+            List<Operation> expenses = userData.getAllIncomes();
+            double expenseSum = expenses.stream()
+                    .mapToDouble(Operation::getAmount)
                     .sum();
+
             return "💸 Сумма расходов: " + String.format("%,.2f", expenseSum);
         }
 
         if ("/count_ops".equals(command)) {
-            int incomeCount = userData.getIncomes()
-                    .values()
-                    .stream()
-                    .mapToInt(List::size)
-                    .sum();
-            int expenseCount = userData.getExpenses()
-                    .values()
-                    .stream()
-                    .mapToInt(List::size)
-                    .sum();
+            List<Operation> incomes = userData.getAllIncomes();
+            List<Operation> expenses = userData.getAllExpenses();
+
+            int incomeCount = incomes.size();
+            int expenseCount = expenses.size();
             int totalOps = incomeCount + expenseCount;
 
-            return String.format("Количество доходов: %d\n" +
-                            "Количество расходов: %d\n" +
-                            "Количество операций: %d",
-                    incomeCount, expenseCount, totalOps);
+            StringBuilder sb = new StringBuilder();
+            sb.append("📈 Количество операций:\n")
+                    .append("➕ Доходы: ").append(incomeCount).append("\n")
+                    .append("➖ Расходы: ").append(expenseCount).append("\n")
+                    .append("📊 Всего операций: ").append(totalOps);
         }
 
         return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
     }
 }
-
-
