@@ -174,19 +174,29 @@ public class MessageHandler {
      * @return объект CommandParts с разобранной командой и параметрами
      */
     private CommandParts parseCommand(String userInput){
-        if (userInput.isBlank()){
-            return new CommandParts("","","");
-        }
-
-        String trimmedInput = userInput.trim();
-        String[] parts = trimmedInput.split("\\s+", 3);
-
-        String command = parts[0];
-        String parameter_amount = parts.length > 2 ? parts[1].trim() : "";
-        String parameter_name = parts.length > 2 ? parts[2].trim() : "";
-
-        return new CommandParts(command, parameter_amount, parameter_name);
+    if (userInput.isBlank()){
+        return new CommandParts("", "", "");
     }
+
+    String trimmedInput = userInput.trim();
+    String[] parts = trimmedInput.split("\\s+", 3);
+
+    String command = parts[0];
+    String parameter_amount = "";
+    String parameter_name = "";
+
+    if (parts.length == 2) {
+        // Один параметр → это название
+        parameter_name = parts[1].trim();
+    } 
+    else if (parts.length == 3) {
+        // Два параметра → первый сумма, второй название
+        parameter_amount = parts[1].trim();
+        parameter_name = parts[2].trim();
+    }
+
+    return new CommandParts(command, parameter_amount, parameter_name);
+}
 
     /**
      * Обрабатывает ввод пользователя и возвращает ответ.
@@ -441,4 +451,5 @@ public class MessageHandler {
         return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
     }
 }
+
 
