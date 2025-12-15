@@ -506,6 +506,16 @@ class MessageHandlerFinanceTests {
     }
 
     /**
+     * Тест команды /add_cat_in с пустым названием категории.
+     */
+    @Test
+    void testAddIncomeCategoryMissingName() {
+        String result = messageHandler.Response("/add_cat_in", "", "", userData);
+        String expected = "Ошибка! Укажите название категории.\nПример: /add_cat_in инвестиции";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
      * Тест ввода неизвестной команды
      */
     @Test
