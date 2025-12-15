@@ -355,7 +355,7 @@ public class MessageHandler {
 
             return "Текущий баланс: " + String.format("%,.2f", balance);
         }
-        if ("/top_exp".equals(command)) {
+        if ("/top_ex".equals(command)) {
             List<Operation> allExpenses = userData.getAllExpenses();
             if (allExpenses.isEmpty()) {
                 return "— Расходов пока нет";
@@ -363,7 +363,7 @@ public class MessageHandler {
 
             allExpenses.sort((a, b) -> Double.compare(b.getAmount(), a.getAmount()));
 
-            StringBuilder top_three_ex = new StringBuilder("📉 Топ-3 самых больших расходов:\\n");
+            StringBuilder top_three_ex = new StringBuilder("📉 Топ-3 самых больших расходов:\n");
             int count = Math.min(3, allExpenses.size());
             for (int i = 0; i < count; i++) {
                 Operation expense = allExpenses.get(i);
@@ -382,7 +382,7 @@ public class MessageHandler {
 
             allIncomes.sort((a, b) -> Double.compare(b.getAmount(), a.getAmount()));
 
-            StringBuilder sb = new StringBuilder("📈 Топ-3 самых больших доходов:\\n");
+            StringBuilder sb = new StringBuilder("📈 Топ-3 самых больших доходов:\n");
             int count = Math.min(3, allIncomes.size());
             for (int i = 0; i < count; i++) {
                 Operation income = allIncomes.get(i);
@@ -403,7 +403,7 @@ public class MessageHandler {
         }
 
         if ("/sum_expense".equals(command)) {
-            List<Operation> expenses = userData.getAllIncomes();
+            List<Operation> expenses = userData.getAllExpenses();
             double expenseSum = expenses.stream()
                     .mapToDouble(Operation::getAmount)
                     .sum();
@@ -420,10 +420,11 @@ public class MessageHandler {
             int totalOps = incomeCount + expenseCount;
 
             StringBuilder sb = new StringBuilder();
-            sb.append("📈 Количество операций:\n")
+            sb.append("📊 Количество операций:\n")
                     .append("➕ Доходы: ").append(incomeCount).append("\n")
                     .append("➖ Расходы: ").append(expenseCount).append("\n")
-                    .append("📊 Всего операций: ").append(totalOps);
+                    .append(" Всего операций: ").append(totalOps);
+            return sb.toString().trim();
         }
 
         return "Неизвестная команда.\nВведите /help для просмотра доступных команд.";
