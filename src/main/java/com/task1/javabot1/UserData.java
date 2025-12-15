@@ -1,5 +1,8 @@
 package com.task1.javabot1;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,13 +16,13 @@ import java.util.Collections;
  * Инкапсулирует логику работы с задачами
  */
 public class UserData {
-    // Храним операции по категориям (как в старом коде, но с Operation)
     private final Map<String, List<Operation>> incomes = new HashMap<>();
     private final Map<String, List<Operation>> expenses = new HashMap<>();
 
-    // Категории пользователя
     private final Set<String> incomeCategories = new HashSet<>();
     private final Set<String> expenseCategories = new HashSet<>();
+
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     public UserData() {
         initDefaultCategories();
@@ -116,7 +119,6 @@ public class UserData {
             return "Категория «" + trimmedCategory + "» не найдена.";
         }
 
-        // Проверяем, используется ли категория
         if (incomes.containsKey(trimmedCategory) &&
                 !incomes.get(trimmedCategory).isEmpty()) {
             int count = incomes.get(trimmedCategory).size();
@@ -138,7 +140,6 @@ public class UserData {
             return "Категория «" + trimmedCategory + "» не найдена.";
         }
 
-        // Проверяем, используется ли категория
         if (expenses.containsKey(trimmedCategory) &&
                 !expenses.get(trimmedCategory).isEmpty()) {
             int count = expenses.get(trimmedCategory).size();
@@ -152,52 +153,80 @@ public class UserData {
 
     /**
      * Добавляет операцию дохода с категорией
+     * Формат: /add_in сумма название категория дата
+     * Если дата не указана - используется текущая
      */
-    public String addIncome(String name, Double amount, String category) {
+    public String addIncome(String name, Double amount, String category, String dateStr) {
         String trimmedName = name.trim();
         String trimmedCategory = category.trim();
 
-        // Проверяем существование категории
         if (!incomeCategories.contains(trimmedCategory)) {
             return buildCategoryError(trimmedCategory, "доходов", getIncomeCategoriesSorted());
         }
 
-        // Создаем операцию
-        Operation operation = new Operation(trimmedName, amount, trimmedCategory);
+        LocalDate operationDate;
 
-        // Используем computeIfAbsent как в старом коде
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            try {
+                // Пытаемся распарсить дату
+                operationDate = LocalDate.parse(dateStr.trim(), dateFormatter);
+            } catch (DateTimeParseException e) {
+                operationDate = LocalDate.now();
+            }
+        } else {
+            // Дата не указана - используем текущую
+            operationDate = LocalDate.now();
+        }
+
+        Operation operation = new Operation(trimmedName, amount, trimmedCategory, operationDate);
+
         incomes.computeIfAbsent(trimmedCategory, k -> new ArrayList<>()).add(operation);
 
         return "– Доход «" + trimmedName + "» на сумму " +
                 String.format("%,.2f", amount) + " добавлен.\n" +
-                "Категория: " + trimmedCategory;
+                "Категория: " + trimmedCategory + "\n"+
+                "Дата: " + operation.getFormattedDate();
     }
 
     /**
      * Добавляет операцию расхода с категорией
+     * Формат: /add_ex сумма название категория дата
+     * Если дата не указана - используется текущая
      */
-    public String addExpense(String name, Double amount, String category) {
+    public String addExpense(String name, Double amount, String category, String dateStr) {
         String trimmedName = name.trim();
         String trimmedCategory = category.trim();
 
-        // Проверяем существование категории
         if (!expenseCategories.contains(trimmedCategory)) {
             return buildCategoryError(trimmedCategory, "расходов", getExpenseCategoriesSorted());
         }
 
-        // Создаем операцию
-        Operation operation = new Operation(trimmedName, amount, trimmedCategory);
+        LocalDate operationDate;
 
-        // Используем computeIfAbsent как в старом коде
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            try {
+                // Пытаемся распарсить дату из строки
+                operationDate = LocalDate.parse(dateStr.trim(), dateFormatter);
+            } catch (DateTimeParseException e) {
+                operationDate = LocalDate.now();
+            }
+        } else {
+            // Дата не указана - используем текущую
+            operationDate = LocalDate.now();
+        }
+
+        Operation operation = new Operation(trimmedName, amount, trimmedCategory, operationDate);
+
         expenses.computeIfAbsent(trimmedCategory, k -> new ArrayList<>()).add(operation);
 
         return "– Расход «" + trimmedName + "» на сумму " +
                 String.format("%,.2f", amount) + " добавлен.\n" +
-                "Категория: " + trimmedCategory;
+                "Категория: " + trimmedCategory + "\n" +
+                "Дата: " + operation.getFormattedDate();
     }
 
     /**
-     * Удаляет операцию дохода (старый стиль - для совместимости)
+     * Удаляет операцию дохода
      */
     public String deleteIncome(String name, Double amount) {
         String trimmedName = name.trim();
@@ -217,7 +246,7 @@ public class UserData {
     }
 
     /**
-     * Удаляет операцию расхода (старый стиль - для совместимости)
+     * Удаляет операцию расхода
      */
     public String deleteExpense(String name, Double amount) {
         String trimmedName = name.trim();
@@ -259,20 +288,6 @@ public class UserData {
     }
 
     /**
-     * Проверяет, есть ли доходы.
-     */
-    public boolean hasIncomes() {
-        return !incomes.isEmpty();
-    }
-
-    /**
-     * Проверяет, есть ли расходы.
-     */
-    public boolean hasExpenses() {
-        return !expenses.isEmpty();
-    }
-
-    /**
      * Возвращает статистику
      */
     public String getStatistics() {
@@ -280,7 +295,6 @@ public class UserData {
         double totalExpense = getTotalExpense();
         double balance = totalIncome - totalExpense;
 
-        // Получаем статистику по категориям
         Map<String, Double> incomeStats = getIncomeStatsByCategory();
         Map<String, Double> expenseStats = getExpenseStatsByCategory();
 
@@ -306,7 +320,7 @@ public class UserData {
     }
 
     /**
-     * Показывает доходы
+     * Показывает доходы с датой
      */
     public String showIncomes() {
         List<Operation> allIncomes = getAllIncomes();
@@ -314,17 +328,20 @@ public class UserData {
             return "— Доходов пока нет";
         }
 
+        allIncomes.sort((a, b) -> b.getDate().compareTo(a.getDate()));
+
         StringBuilder sb = new StringBuilder();
         for (Operation op : allIncomes) {
             sb.append("— Доход «").append(op.getName())
                     .append("» на сумму ").append(String.format("%,.2f", op.getAmount()))
-                    .append(" (категория: ").append(op.getCategory()).append(")\n");
+                    .append(" (категория: ").append(op.getCategory()).append(")")
+                    .append(" Дата: ").append(op.getFormattedDate()).append("\n");
         }
         return sb.toString().trim();
     }
 
     /**
-     * Показывает расходы
+     * Показывает расходы с датой
      */
     public String showExpenses() {
         List<Operation> allExpenses = getAllExpenses();
@@ -332,11 +349,14 @@ public class UserData {
             return "— Расходов пока нет";
         }
 
+        allExpenses.sort((a, b) -> b.getDate().compareTo(a.getDate()));
+
         StringBuilder sb = new StringBuilder();
         for (Operation op : allExpenses) {
             sb.append("— Расход «").append(op.getName())
                     .append("» на сумму ").append(String.format("%,.2f", op.getAmount()))
-                    .append(" (категория: ").append(op.getCategory()).append(")\n");
+                    .append(" (категория: ").append(op.getCategory()).append(")")
+                    .append(" Дата: ").append(op.getFormattedDate()).append("\n");
         }
         return sb.toString().trim();
     }
@@ -388,7 +408,7 @@ public class UserData {
     }
 
     /**
-    * Получаем общую сумму доходов
+    * Получаем общую сумму расходов
     */
     private double getTotalExpense() {
         double total = 0;
@@ -431,7 +451,6 @@ public class UserData {
             stats.put(entry.getKey(), sum);
         }
 
-        // Добавляем категории с нулевой суммой
         for (String category : expenseCategories) {
             stats.putIfAbsent(category, 0.0);
         }

@@ -273,33 +273,84 @@ public class MessageHandler {
         }
 
         if ("/add_in".equals(command)) {
-            String[] parts = parameter_name.split(" ", 2);
-            if (parameter_amount.isEmpty() || parts.length < 2) {
+            if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
                 return "Ошибка! Укажите сумму, название и категорию.\n" +
-                        "Пример: /add_in 50000 Зарплата работа";
+                        "Пример: /add_in 50000 Зарплата работа\n" +
+                        "Или с датой: /add_in 50000 Зарплата работа 15.12.2025";
             }
 
             try {
                 double amount = Double.parseDouble(parameter_amount);
-                String name = parts[0];
-                String category = parts[1];
-                return userData.addIncome(name, amount, category);
+                String[] nameParts = parameter_name.split("\\s+");
+                if (nameParts.length < 2) {
+                    return "Ошибка! Укажите название и категорию.\n" +
+                            "Пример: /add_in 50000 Зарплата работа";
+                }
+                String name;
+                String category;
+                String date = null;
+
+                int lastIndex = nameParts.length - 1;
+                String lastPart = nameParts[lastIndex];
+                if (lastPart.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) {
+                    date = lastPart;
+                    lastIndex--;
+                }
+
+                category = nameParts[lastIndex];
+                StringBuilder nameBuilder = new StringBuilder();
+                for (int i = 0; i < lastIndex; i++) {
+                    if (i > 0) nameBuilder.append(" ");
+                    nameBuilder.append(nameParts[i]);
+                }
+                name = nameBuilder.toString().trim();
+                if (name.isEmpty()) {
+                    return "Ошибка! Укажите название операции.";
+                }
+
+                return userData.addIncome(name, amount, category, date);
             } catch (NumberFormatException e) {
                 return "Некорректная сумма: " + parameter_amount;
             }
         }
 
         if ("/add_ex".equals(command)) {
-            String[] parts = parameter_name.split(" ", 2);
-            if (parameter_amount.isEmpty() || parts.length < 2) {
+            if (parameter_amount.isEmpty() || parameter_name.isEmpty()) {
                 return "Ошибка! Укажите сумму, название и категорию.\n" +
-                        "Пример: /add_ex 1500 Продукты еда";
+                        "Пример: /add_ex 1500 Продукты еда\n" +
+                        "Или с датой: /add_ex 1500 Продукты еда 15.12.2025";
             }
+
             try {
                 double amount = Double.parseDouble(parameter_amount);
-                String name = parts[0];
-                String category = parts[1];
-                return userData.addExpense(name, amount, category);
+                String[] nameParts = parameter_name.split("\\s+");
+                if (nameParts.length < 2) {
+                    return "Ошибка! Укажите название и категорию.\n" +
+                            "Пример: /add_ex 1500 Продукты еда";
+                }
+                String name;
+                String category;
+                String date = null;
+
+                int lastIndex = nameParts.length - 1;
+                String lastPart = nameParts[lastIndex];
+                if (lastPart.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) {
+                    date = lastPart;
+                    lastIndex--;
+                }
+
+                category = nameParts[lastIndex];
+                StringBuilder nameBuilder = new StringBuilder();
+                for (int i = 0; i < lastIndex; i++) {
+                    if (i > 0) nameBuilder.append(" ");
+                    nameBuilder.append(nameParts[i]);
+                }
+                name = nameBuilder.toString().trim();
+                if (name.isEmpty()) {
+                    return "Ошибка! Укажите название операции.";
+                }
+
+                return userData.addExpense(name, amount, category, date);
             } catch (NumberFormatException e) {
                 return "Некорректная сумма: " + parameter_amount;
             }
