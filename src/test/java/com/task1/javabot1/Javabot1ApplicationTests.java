@@ -567,7 +567,7 @@ class MessageHandlerFinanceTests {
     @Test
     void testAddIncomeCategoryMissingName() {
         String result = messageHandler.Response("/add_cat_in", "", "", userData);
-        String expected = "Название категории не может быть пустым.";
+        String expected = "Ошибка! Укажите название категории.\nПример: /add_cat_in инвестиции";
         Assertions.assertEquals(expected, result);
     }
 
@@ -577,7 +577,7 @@ class MessageHandlerFinanceTests {
     @Test
     void testAddExpenseCategoryMissingName() {
         String result = messageHandler.Response("/add_cat_ex", "", "", userData);
-        String expected = "Название категории не может быть пустым.";
+        String expected = "Ошибка! Укажите название категории.\nПример: /add_cat_ex кафе";
         Assertions.assertEquals(expected, result);
     }
 
@@ -587,7 +587,7 @@ class MessageHandlerFinanceTests {
     @Test
     void testDeleteIncomeCategoryMissingName() {
         String result = messageHandler.Response("/del_cat_in", "", "", userData);
-        String expected = "Название категории не может быть пустым.";
+        String expected = "Ошибка! Укажите название категории.\nПример: /del_cat_in инвестиции";
         Assertions.assertEquals(expected, result);
     }
 
@@ -597,7 +597,7 @@ class MessageHandlerFinanceTests {
     @Test
     void testDeleteExpenseCategoryMissingName() {
         String result = messageHandler.Response("/del_cat_ex", "", "", userData);
-        String expected = "Название категории не может быть пустым.";
+        String expected = "Ошибка! Укажите название категории.\nПример: /del_cat_ex кафе";
         Assertions.assertEquals(expected, result);
     }
 
