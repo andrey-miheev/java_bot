@@ -561,4 +561,107 @@ class MessageHandlerFinanceTests {
                 String.format("транспорт: %,.2f", 2000.0);
         Assertions.assertEquals(expected2, result2);
     }
+    /**
+     * Тест команды /add_cat_in с пустым названием категории.
+     */
+    @Test
+    void testAddIncomeCategoryMissingName() {
+        String result = messageHandler.Response("/add_cat_in", "", "", userData);
+        String expected = "Название категории не может быть пустым.";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /add_cat_ex с пустым названием категории.
+     */
+    @Test
+    void testAddExpenseCategoryMissingName() {
+        String result = messageHandler.Response("/add_cat_ex", "", "", userData);
+        String expected = "Название категории не может быть пустым.";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /del_cat_in с пустым названием категории.
+     */
+    @Test
+    void testDeleteIncomeCategoryMissingName() {
+        String result = messageHandler.Response("/del_cat_in", "", "", userData);
+        String expected = "Название категории не может быть пустым.";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /del_cat_ex с пустым названием категории.
+     */
+    @Test
+    void testDeleteExpenseCategoryMissingName() {
+        String result = messageHandler.Response("/del_cat_ex", "", "", userData);
+        String expected = "Название категории не может быть пустым.";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест успешного добавления категории расходов
+     */
+    @Test
+    void testAddExpenseCategorySuccess() {
+        String result = messageHandler.Response("/add_cat_ex", "", "кафе", userData);
+        String expected = "Категория «кафе» добавлена.";
+        Assertions.assertEquals(expected, result);
+
+        String resultList = messageHandler.Response("/cat_ex", "", "", userData);
+
+        String expectedList = "Доступные категории расходов:\n" +
+                "• дом\n" +
+                "• другое\n" +
+                "• еда\n" +
+                "• здоровье\n" +
+                "• кафе\n" +
+                "• развлечения\n" +
+                "• транспорт";
+
+        Assertions.assertEquals(expectedList, resultList);
+    }
+
+    /**
+     * Тест успешного добавления категории доходов
+     */
+    @Test
+    void testAddIncomeCategorySuccess() {
+        String result = messageHandler.Response("/add_cat_in", "", "Инвестиции", userData);
+        String expected = "Категория «Инвестиции» добавлена.";
+        Assertions.assertEquals(expected, result);
+
+        String resultList = messageHandler.Response("/cat_in", "", "", userData);
+
+        String expectedList = "Доступные категории доходов:\n" +
+                "• Инвестиции\n" +
+                "• подарок\n" +
+                "• работа";
+
+        Assertions.assertEquals(expectedList, resultList);
+    }
+    /**
+     * Тест добавления уже существующей категории расходов.
+     */
+    @Test
+    void testAddExistingExpenseCategory() {
+        String result = messageHandler.Response("/add_cat_ex", "", "еда", userData);
+        String expected = "Категория «еда» уже существует.";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест добавления уже существующей категории доходов.
+     */
+    @Test
+    void testAddExistingIncomeCategory() {
+        String result = messageHandler.Response("/add_cat_in", "", "работа", userData);
+        String expected = "Категория «работа» уже существует.";
+        Assertions.assertEquals(expected, result);
+    }
+
+
 }
+
