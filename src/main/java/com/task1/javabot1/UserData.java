@@ -170,13 +170,11 @@ public class UserData {
 
         if (dateStr != null && !dateStr.trim().isEmpty()) {
             try {
-                // Пытаемся распарсить дату
                 operationDate = LocalDate.parse(dateStr.trim(), dateFormatter);
             } catch (DateTimeParseException e) {
                 operationDate = LocalDate.now();
             }
         } else {
-            // Дата не указана - используем текущую
             operationDate = LocalDate.now();
         }
 
@@ -207,13 +205,11 @@ public class UserData {
 
         if (dateStr != null && !dateStr.trim().isEmpty()) {
             try {
-                // Пытаемся распарсить дату из строки
                 operationDate = LocalDate.parse(dateStr.trim(), dateFormatter);
             } catch (DateTimeParseException e) {
                 operationDate = LocalDate.now();
             }
         } else {
-            // Дата не указана - используем текущую
             operationDate = LocalDate.now();
         }
 
@@ -438,32 +434,6 @@ public class UserData {
     }
 
     /**
-    * Получаем общую сумму доходов
-    */
-    private double getTotalIncome() {
-        double total = 0;
-        for (List<Operation> ops : incomes.values()) {
-            for (Operation op : ops) {
-                total += op.getAmount();
-            }
-        }
-        return total;
-    }
-
-    /**
-    * Получаем общую сумму расходов
-    */
-    private double getTotalExpense() {
-        double total = 0;
-        for (List<Operation> ops : expenses.values()) {
-            for (Operation op : ops) {
-                total += op.getAmount();
-            }
-        }
-        return total;
-    }
-
-    /**
     * Получаем статистику категорий доходов
     */
     private Map<String, Double> getStatsByCategory(List<Operation> operations) {
@@ -478,12 +448,10 @@ public class UserData {
      * Добавляет категории с нулевой суммой в статистику
      */
     private void addEmptyCategories(Map<String, Double> incomeStats, Map<String, Double> expenseStats) {
-        // Добавляем все категории доходов (но только если они существуют)
         for (String category : getIncomeCategoriesSorted()) {
             incomeStats.putIfAbsent(category, 0.0);
         }
 
-        // Добавляем все категории расходов (но только если они существуют)
         for (String category : getExpenseCategoriesSorted()) {
             expenseStats.putIfAbsent(category, 0.0);
         }
