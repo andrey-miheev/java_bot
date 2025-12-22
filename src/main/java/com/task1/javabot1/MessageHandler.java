@@ -1,5 +1,6 @@
 package com.task1.javabot1;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
@@ -364,7 +365,19 @@ public class MessageHandler {
         }
 
         if ("/statistic".equals(command)) {
-            return userData.getStatistics();
+            String period = parameter_name.trim().toLowerCase();
+            List<String> validPeriods = Arrays.asList("", "today", "week", "month", "year");
+            if (!validPeriods.contains(period)) {
+                return "Некорректный период.\n" +
+                        "Используйте:\n" +
+                        " /statistic - за текущий месяц\n" +
+                        " /statistic today - за сегодня\n" +
+                        " /statistic week - за текущую неделю\n" +
+                        " /statistic month - за текущий месяц\n" +
+                        " /statistic year - за текущий год";
+            }
+
+            return userData.getStatistics(period);
         }
 
         if ("/delete_in".equals(command)) {

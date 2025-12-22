@@ -1,6 +1,7 @@
 package com.task1.javabot1;
 
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * Умный менеджер данных пользователя.
@@ -288,33 +290,74 @@ public class UserData {
     }
 
     /**
-     * Возвращает статистику
+     * Возвращает статистику за указанный период
+     * period: "today", "week", "month", "year" или текущий месяц
      */
-    public String getStatistics() {
-        double totalIncome = getTotalIncome();
-        double totalExpense = getTotalExpense();
+    public String getStatistics(String period) {
+        LocalDate now = LocalDate.now();
+        LocalDate startDate;
+        String periodTitle = switch (period.toLowerCase()) {
+            case "today" -> {
+                startDate = now;
+                yield "сегодня (" + now.format(dateFormatter) + ")";
+            }
+            case "week" -> {
+                startDate = now.minusDays(6); // последние 7 дней
+                yield "текущую неделю (" + startDate.format(dateFormatter) +
+                        " - " + now.format(dateFormatter) + ")";
+            }
+            case "month" -> {
+                startDate = now.with(TemporalAdjusters.firstDayOfMonth());
+                yield "текущий месяц (" + now.getMonth().toString().toLowerCase() +
+                        " " + now.getYear() + ")";
+            }
+            case "year" -> {
+                startDate = LocalDate.of(now.getYear(), 1, 1);
+                yield "текущий год (" + now.getYear() + ")";
+            }
+            default -> {
+                // По умолчанию - текущий месяц
+                startDate = now.with(TemporalAdjusters.firstDayOfMonth());
+                yield "текущий месяц";
+            }
+        };
+
+        List<Operation> filteredIncomes = getAllIncomes().stream()
+                .filter(op -> !op.getDate().isBefore(startDate) && !op.getDate().isAfter(now))
+                .collect(Collectors.toList());
+
+        List<Operation> filteredExpenses = getAllExpenses().stream()
+                .filter(op -> !op.getDate().isBefore(startDate) && !op.getDate().isAfter(now))
+                .collect(Collectors.toList());
+
+        double totalIncome = filteredIncomes.stream()
+                .mapToDouble(Operation::getAmount)
+                .sum();
+        double totalExpense = filteredExpenses.stream()
+                .mapToDouble(Operation::getAmount)
+                .sum();
         double balance = totalIncome - totalExpense;
 
-        Map<String, Double> incomeStats = getIncomeStatsByCategory();
-        Map<String, Double> expenseStats = getExpenseStatsByCategory();
+        Map<String, Double> incomeStats = getStatsByCategory(filteredIncomes);
+        Map<String, Double> expenseStats = getStatsByCategory(filteredExpenses);
+        addEmptyCategories(incomeStats, expenseStats);
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Сумма доходов: %,.2f \n", totalIncome))
+        sb.append(String.format("Статистика за %s: \n", periodTitle))
+                .append(String.format("Сумма доходов: %,.2f \n", totalIncome))
                 .append(String.format("Сумма расходов: %,.2f \n", totalExpense))
                 .append(String.format("Оставшийся бюджет: %,.2f\n", balance))
-                .append("Статистика по категориям за месяц:\n\n");
+                .append("Статистика по категориям:\n\n");
 
         sb.append("Доходы:\n");
-        for (String category : getIncomeCategoriesSorted()) {
-            double amount = incomeStats.getOrDefault(category, 0.0);
-            sb.append(String.format("%s: %,.2f\n", category, amount));
-        }
+        incomeStats.entrySet().stream()
+                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                .forEach(entry -> sb.append(String.format("• %s: %,.2f\n", entry.getKey(), entry.getValue())));
 
         sb.append("\nРасходы:\n");
-        for (String category : getExpenseCategoriesSorted()) {
-            double amount = expenseStats.getOrDefault(category, 0.0);
-            sb.append(String.format("%s: %,.2f\n", category, amount));
-        }
+        expenseStats.entrySet().stream()
+                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                .forEach(entry -> sb.append(String.format("• %s: %,.2f\n", entry.getKey(), entry.getValue())));
 
         return sb.toString().trim();
     }
@@ -423,38 +466,26 @@ public class UserData {
     /**
     * Получаем статистику категорий доходов
     */
-    private Map<String, Double> getIncomeStatsByCategory() {
+    private Map<String, Double> getStatsByCategory(List<Operation> operations) {
         Map<String, Double> stats = new HashMap<>();
-        for (Map.Entry<String, List<Operation>> entry : incomes.entrySet()) {
-            double sum = entry.getValue().stream()
-                    .mapToDouble(Operation::getAmount)
-                    .sum();
-            stats.put(entry.getKey(), sum);
+        for (Operation op : operations) {
+            stats.put(op.getCategory(), stats.getOrDefault(op.getCategory(), 0.0) + op.getAmount());
         }
-
-        for (String category : incomeCategories) {
-            stats.putIfAbsent(category, 0.0);
-        }
-
         return stats;
     }
 
     /**
-    * Получаем статистику категорий расходов
-    */
-    private Map<String, Double> getExpenseStatsByCategory() {
-        Map<String, Double> stats = new HashMap<>();
-        for (Map.Entry<String, List<Operation>> entry : expenses.entrySet()) {
-            double sum = entry.getValue().stream()
-                    .mapToDouble(Operation::getAmount)
-                    .sum();
-            stats.put(entry.getKey(), sum);
+     * Добавляет категории с нулевой суммой в статистику
+     */
+    private void addEmptyCategories(Map<String, Double> incomeStats, Map<String, Double> expenseStats) {
+        // Добавляем все категории доходов (но только если они существуют)
+        for (String category : getIncomeCategoriesSorted()) {
+            incomeStats.putIfAbsent(category, 0.0);
         }
 
-        for (String category : expenseCategories) {
-            stats.putIfAbsent(category, 0.0);
+        // Добавляем все категории расходов (но только если они существуют)
+        for (String category : getExpenseCategoriesSorted()) {
+            expenseStats.putIfAbsent(category, 0.0);
         }
-
-        return stats;
     }
 }
