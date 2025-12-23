@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 /**
  * Тесты для обработки финансовых команд в классе MessageHandler.
  * Проверяются основные команды: /start, /help, /add_in, /add_ex,
@@ -32,9 +35,11 @@ class MessageHandlerFinanceTests {
      * Тест команды /add_in с пустыми параметрами.
      */
     @Test
-    void testAddIncomeMissingParams() {
-        String result = messageHandler.Response("/add_in", "", "", userData);
-        String expected = "Ошибка! Укажите сумму, название и категорию.\nПример: /add_in 50000 Зарплата работа";
+    void testAddExpenseMissingParams() {
+        String result = messageHandler.Response("/add_ex", "", "", userData);
+        String expected = "Ошибка! Укажите сумму, название и категорию.\n" +
+                "Пример: /add_ex 1500 Продукты еда\n" +
+                "Или с датой: /add_ex 1500 Продукты еда 15.12.2025";
         Assertions.assertEquals(expected, result);
     }
 
@@ -55,14 +60,18 @@ class MessageHandlerFinanceTests {
     void testAddIncomeSuccess() {
         String result = messageHandler.Response("/add_in", "50000", "Зарплата работа", userData);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         String expected = "– Доход «Зарплата» на сумму " +
                 String.format("%,.2f", 50000.0) + " добавлен.\n" +
-                "Категория: работа";
+                "Категория: работа\n" +
+                "Дата: " + today;
         Assertions.assertEquals(expected, result);
         String result_add = messageHandler.Response("/income", "", "", userData);
 
         String expected_add = "— Доход «Зарплата» на сумму "+ String.format("%,.2f", 50000.0) +
-                " (категория: работа)";
+                " (категория: работа) Дата: " + today;
 
         Assertions.assertEquals(expected_add, result_add);
 
@@ -71,11 +80,15 @@ class MessageHandlerFinanceTests {
     /**
      * Тест команды /add_ex с пустыми параметрами.
      */
+    /**
+     * Тест команды /add_in с пустыми параметрами.
+     */
     @Test
-    void testAddExpenseMissingParams() {
-        String result = messageHandler.Response("/add_ex", "", "", userData);
+    void testAddIncomeMissingParams() {
+        String result = messageHandler.Response("/add_in", "", "", userData);
         String expected = "Ошибка! Укажите сумму, название и категорию.\n" +
-                "Пример: /add_ex 1500 Продукты еда";
+                "Пример: /add_in 50000 Зарплата работа\n" +
+                "Или с датой: /add_in 50000 Зарплата работа 15.12.2025";
         Assertions.assertEquals(expected, result);
     }
 
@@ -96,16 +109,20 @@ class MessageHandlerFinanceTests {
     void testAddExpenseSuccess() {
         String result = messageHandler.Response("/add_ex", "1500", "Продукты еда", userData);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         String expected = "– Расход «Продукты» на сумму " +
                 String.format("%,.2f", 1500.0) + " добавлен.\n" +
-                "Категория: еда";
+                "Категория: еда\n" +
+                "Дата: " + today;
 
         Assertions.assertEquals(expected, result);
         String result_add = messageHandler.Response("/expense", "", "", userData);
         Double amount_test = 1500.00;
 
         String expected_add = "— Расход «Продукты» на сумму "+ String.format("%,.2f", 1500.0) +
-                " (категория: еда)";
+                " (категория: еда) Дата: " + today;
 
         Assertions.assertEquals(expected_add, result_add);
     }
@@ -125,12 +142,19 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testShowIncomes() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         messageHandler.Response("/add_in", "50000", "Зарплата работа", userData);
         messageHandler.Response("/add_in", "10000", "Зарплата работа", userData);
 
         String result = messageHandler.Response("/income", "", "", userData);
-        String expected = "— Доход «Зарплата» на сумму "+ String.format("%,.2f", 50000.0) + " (категория: работа)\n" +
-                "— Доход «Зарплата» на сумму "+ String.format("%,.2f", 10000.0) + " (категория: работа)";
+        String expected = "— Доход «Зарплата» на сумму " +
+                String.format("%,.2f", 50000.0) +
+                " (категория: работа) Дата: " + today + "\n" +
+                "— Доход «Зарплата» на сумму " +
+                String.format("%,.2f", 10000.0) +
+                " (категория: работа) Дата: " + today;
 
         Assertions.assertEquals(expected, result);
     }
@@ -150,13 +174,20 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testShowExpenses() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         messageHandler.Response("/add_ex", "1500", "Продукты еда", userData);
         messageHandler.Response("/add_ex", "300", "Продукты еда", userData);
 
         String result = messageHandler.Response("/expense", "", "", userData);
 
-        String expected = "— Расход «Продукты» на сумму "+ String.format("%,.2f", 1500.0) + " (категория: еда)\n" +
-                "— Расход «Продукты» на сумму "+ String.format("%,.2f", 300.0) + " (категория: еда)";
+        String expected = "— Расход «Продукты» на сумму " +
+                String.format("%,.2f", 1500.0) +
+                " (категория: еда) Дата: " + today + "\n" +
+                "— Расход «Продукты» на сумму " +
+                String.format("%,.2f", 300.0) +
+                " (категория: еда) Дата: " + today;
 
         Assertions.assertEquals(expected, result);
     }
@@ -186,12 +217,16 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testDeleteIncomeSuccess() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         messageHandler.Response("/add_in", "25000", "Премия работа", userData);
 
         String result_add = messageHandler.Response("/income", "", "", userData);
         Double amount1_test = 25000.00;
-        String expected_add = "— Доход «Премия» на сумму "+ String.format("%,.2f", 25000.0) +
-                " (категория: работа)";
+        String expected_add = "— Доход «Премия» на сумму " +
+                String.format("%,.2f", 25000.0) +
+                " (категория: работа) Дата: " + today;
         Assertions.assertEquals(expected_add, result_add);
 
         String result = messageHandler.Response("/delete_in", "25000", "Премия", userData);
@@ -210,11 +245,15 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testDeleteIncomeAmountNotFound() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         messageHandler.Response("/add_in", "5000", "Бонус работа", userData);
 
         String result_add = messageHandler.Response("/income", "", "", userData);
-        String expected_add = "— Доход «Бонус» на сумму "+ String.format("%,.2f", 5000.0) +
-                " (категория: работа)";
+        String expected_add = "— Доход «Бонус» на сумму " +
+                String.format("%,.2f", 5000.0) +
+                " (категория: работа) Дата: " + today;
         Assertions.assertEquals(expected_add, result_add);
 
         String result = messageHandler.Response("/delete_in", "1000", "Бонус", userData);
@@ -248,10 +287,15 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testDeleteExpenseSuccess() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         messageHandler.Response("/add_ex", "1500", "Продукты еда", userData);
 
         String result_add = messageHandler.Response("/expense", "", "", userData);
-        String expected_add = "— Расход «Продукты» на сумму "+ String.format("%,.2f", 1500.0) + " (категория: еда)";
+        String expected_add = "— Расход «Продукты» на сумму " +
+                String.format("%,.2f", 1500.0) +
+                " (категория: еда) Дата: " + today;
         Assertions.assertEquals(expected_add, result_add);
 
         String result = messageHandler.Response("/delete_ex", "1500", "Продукты", userData);
@@ -270,10 +314,15 @@ class MessageHandlerFinanceTests {
      */
     @Test
     void testDeleteExpenseAmountNotFound() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String today = LocalDate.now().format(formatter);
+
         messageHandler.Response("/add_ex", "5000", "Продукты еда", userData);
 
         String result_add = messageHandler.Response("/expense", "", "", userData);
-        String expected_add = "— Расход «Продукты» на сумму "+ String.format("%,.2f", 5000.0) + " (категория: еда)";
+        String expected_add = "— Расход «Продукты» на сумму " +
+                String.format("%,.2f", 5000.0) +
+                " (категория: еда) Дата: " + today;
         Assertions.assertEquals(expected_add, result_add);
 
         String result = messageHandler.Response("/delete_ex", "1000", "Продукты", userData);
@@ -315,20 +364,24 @@ class MessageHandlerFinanceTests {
     @Test
     void testStatisticEmpty() {
         String result = messageHandler.Response("/statistic", "", "", userData);
-        String expected = String.format("Сумма доходов: %,.2f \n", 0.0) +
-                String.format("Сумма расходов: %,.2f \n", 0.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 0.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 0.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 0.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 0.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 0.0);
+
+        String expected =
+                "Статистика за текущий месяц: \n" +
+                        "Сумма доходов: 0,00 \n" +
+                        "Сумма расходов: 0,00 \n" +
+                        "Оставшийся бюджет: 0,00\n" +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        "• подарок: 0,00\n" +
+                        "• работа: 0,00\n\n" +
+                        "Расходы:\n" +
+                        "• другое: 0,00\n" +
+                        "• еда: 0,00\n" +
+                        "• развлечения: 0,00\n" +
+                        "• дом: 0,00\n" +
+                        "• транспорт: 0,00\n" +
+                        "• здоровье: 0,00";
+
         Assertions.assertEquals(expected, result);
     }
 
@@ -344,22 +397,29 @@ class MessageHandlerFinanceTests {
         messageHandler.Response("/add_ex", "5000", "Продукты еда", userData);
 
         String result = messageHandler.Response("/statistic", "", "", userData);
-        String expected = String.format("Сумма доходов: %,.2f \n", 65000.0) +
-                String.format("Сумма расходов: %,.2f \n", 20000.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 45000.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 65000.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 15000.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 5000.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 0.0);
+
+        String expected =
+                "Статистика за текущий месяц: \n" +
+                        String.format("Сумма доходов: %,.2f \n", 65000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 20000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 45000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 65000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• дом: %,.2f\n", 15000.0) +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
         Assertions.assertEquals(expected, result);
     }
+
+
 
     /**
      * Тест команды /top_ex при отсутствии расходов.
@@ -517,7 +577,7 @@ class MessageHandlerFinanceTests {
      * Тест на независимость данных для разных пользователей
      */
     @Test
-    void testDifferentUserData(){
+    void testDifferentUserData() {
         messageHandler.Response("/add_in", "50000", "Зарплата работа", userData);
         messageHandler.Response("/add_in", "15000", "Премия работа", userData);
         messageHandler.Response("/add_in", "10000", "Премия работа", userData2);
@@ -527,38 +587,49 @@ class MessageHandlerFinanceTests {
         messageHandler.Response("/add_ex", "5000", "Продукты еда", userData2);
         messageHandler.Response("/add_ex", "2000", "Транспорт транспорт", userData2);
 
-        String result1 = messageHandler.Response("/statistic", "", "", userData);
-        String expected1 = String.format("Сумма доходов: %,.2f \n", 65000.0) +
-                String.format("Сумма расходов: %,.2f \n", 45000.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 20000.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 65000.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 30000.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 15000.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 0.0);
-        Assertions.assertEquals(expected1, result1);
+        String periodTitle = "текущий месяц";
 
+        String result1 = messageHandler.Response("/statistic", "", "", userData);
+
+        String expected1 =
+                "Статистика за текущий месяц: \n" +
+                        String.format("Сумма доходов: %,.2f \n", 65000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 45000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 20000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 65000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• дом: %,.2f\n", 30000.0) +
+                        String.format("• еда: %,.2f\n", 15000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
+        Assertions.assertEquals(expected1, result1);
         String result2 = messageHandler.Response("/statistic", "", "", userData2);
-        String expected2 = String.format("Сумма доходов: %,.2f \n", 10000.0) +
-                String.format("Сумма расходов: %,.2f \n", 7000.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 3000.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 10000.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 0.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 5000.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 2000.0);
+
+        String expected2 =
+                "Статистика за текущий месяц: \n" +
+                        String.format("Сумма доходов: %,.2f \n", 10000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 7000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 3000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 10000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• транспорт: %,.2f\n", 2000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• дом: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
         Assertions.assertEquals(expected2, result2);
     }
     /**
@@ -662,6 +733,54 @@ class MessageHandlerFinanceTests {
         Assertions.assertEquals(expected, result);
     }
 
+    /**
+     * Тест команды /add_in с указанием конкретной даты.
+     * Проверяет корректность добавления дохода с явно заданной датой.
+     */
+    @Test
+    void testAddIncomeWithDate() {
+        String result = messageHandler.Response("/add_in", "50000",
+                "Зарплата работа 15.12.2025", userData);
+
+        String expected = "– Доход «Зарплата» на сумму " +
+                String.format("%,.2f", 50000.0) + " добавлен.\n" +
+                "Категория: работа\n" +
+                "Дата: 15.12.2025";
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     * Тест команды /add_ex с указанием конкретной даты.
+     * Проверяет корректность добавления расхода с явно заданной датой.
+     */
+    @Test
+    void testAddExpenseWithDate() {
+        String result = messageHandler.Response("/add_ex", "1500",
+                "Продукты еда 01.01.2025", userData);
+
+        String expected = "– Расход «Продукты» на сумму " +
+                String.format("%,.2f", 1500.0) + " добавлен.\n" +
+                "Категория: еда\n" +
+                "Дата: 01.01.2025";
+        Assertions.assertEquals(expected, result);
+    }
+    /**
+     * Тест команды /statistic с некорректным периодом.
+     */
+    @Test
+    void testStatisticInvalidPeriod() {
+        String result = messageHandler.Response("/statistic", "", "invalid_period", userData);
+
+        String expected = "Некорректный период.\n" +
+                "Используйте:\n" +
+                " /statistic - за текущий месяц\n" +
+                " /statistic today - за сегодня\n" +
+                " /statistic week - за текущую неделю\n" +
+                " /statistic month - за текущий месяц\n" +
+                " /statistic year - за текущий год";
+
+        Assertions.assertEquals(expected, result);
+    }
     /**
      * Тест успешного удаления категории расходов
      */
