@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 
 /**
  * Тесты для обработки финансовых команд в классе MessageHandler.
@@ -20,6 +21,7 @@ class MessageHandlerFinanceTests {
     private MessageHandler messageHandler;
     private UserData userData;
     private UserData userData2;
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     /**
      * Инициализация тестового окружения перед каждым тестом.
@@ -386,10 +388,10 @@ class MessageHandlerFinanceTests {
     }
 
     /**
-     * Тест команды /statistic с доходами и расходами.
+     * Тест команды /statistic без даты с доходами и расходами.
      */
     @Test
-    void testStatisticWithData() {
+    void testStatisticWithoutDate() {
         messageHandler.Response("/add_in", "50000", "Зарплата работа", userData);
         messageHandler.Response("/add_in", "15000", "Премия работа", userData);
 
@@ -781,6 +783,151 @@ class MessageHandlerFinanceTests {
 
         Assertions.assertEquals(expected, result);
     }
+
+    /**
+     *  Тест на статистику с параметром today
+     */
+    @Test
+    void testStatisticWithToday() {
+        messageHandler.Response("/add_in", "50000", "Зарплата работа 01.12.2025", userData);
+        messageHandler.Response("/add_in", "15000", "Премия работа", userData);
+
+        messageHandler.Response("/add_ex", "15000", "Аренда дом 10.12.2025", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты еда", userData);
+
+        String result = messageHandler.Response("/statistic", "", "today", userData);
+        LocalDate now = LocalDate.now();
+
+        String expected =
+                "Статистика за сегодня (" + now.format(dateFormatter) + "): \n" +
+                        String.format("Сумма доходов: %,.2f \n", 15000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 5000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 10000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 15000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• дом: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     *  Тест на статистику с параметром week
+     */
+    @Test
+    void testStatisticWithWeek() {
+        messageHandler.Response("/add_in", "50000", "Зарплата работа 01.12.2025", userData);
+        messageHandler.Response("/add_in", "15000", "Премия работа", userData);
+
+        messageHandler.Response("/add_ex", "15000", "Аренда дом 10.12.2025", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты еда", userData);
+
+        String result = messageHandler.Response("/statistic", "", "week", userData);
+        LocalDate now = LocalDate.now();
+        LocalDate startDate;
+        startDate = now.minusDays(6);
+
+        String expected =
+                "Статистика за текущую неделю (" + startDate.format(dateFormatter) +
+                        " - " + now.format(dateFormatter) + "): \n" +
+                        String.format("Сумма доходов: %,.2f \n", 15000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 5000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 10000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 15000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• дом: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     *  Тест на статистику с параметром month
+     */
+    @Test
+    void testStatisticWithMonth() {
+        messageHandler.Response("/add_in", "50000", "Зарплата работа 01.12.2025", userData);
+        messageHandler.Response("/add_in", "15000", "Премия работа", userData);
+
+        messageHandler.Response("/add_ex", "15000", "Аренда дом 10.11.2025", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты еда", userData);
+
+        String result = messageHandler.Response("/statistic", "", "month", userData);
+        LocalDate now = LocalDate.now();
+
+        String expected =
+                "Статистика за текущий месяц (" + now.getMonth().toString().toLowerCase() + " " +
+                        + now.getYear() + "): \n" +
+                        String.format("Сумма доходов: %,.2f \n", 65000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 5000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 60000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 65000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• дом: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
+        Assertions.assertEquals(expected, result);
+    }
+
+    /**
+     *  Тест на статистику с параметром year
+     */
+    @Test
+    void testStatisticWithYear() {
+        messageHandler.Response("/add_in", "50000", "Зарплата работа 01.12.2025", userData);
+        messageHandler.Response("/add_in", "15000", "Премия работа", userData);
+
+        messageHandler.Response("/add_ex", "15000", "Аренда дом 10.11.2024", userData);
+        messageHandler.Response("/add_ex", "5000", "Продукты еда", userData);
+
+        String result = messageHandler.Response("/statistic", "", "year", userData);
+        LocalDate now = LocalDate.now();
+
+        String expected =
+                "Статистика за текущий год (" + now.getYear() + "): \n" +
+                        String.format("Сумма доходов: %,.2f \n", 65000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 5000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 60000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 65000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• дом: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
+        Assertions.assertEquals(expected, result);
+    }
+
     /**
      * Тест успешного удаления категории расходов
      */
