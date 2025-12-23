@@ -364,20 +364,24 @@ class MessageHandlerFinanceTests {
     @Test
     void testStatisticEmpty() {
         String result = messageHandler.Response("/statistic", "", "", userData);
-        String expected = String.format("Сумма доходов: %,.2f \n", 0.0) +
-                String.format("Сумма расходов: %,.2f \n", 0.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 0.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 0.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 0.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 0.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 0.0);
+
+        String expected =
+                "Статистика за текущий месяц: \n" +
+                        "Сумма доходов: 0,00 \n" +
+                        "Сумма расходов: 0,00 \n" +
+                        "Оставшийся бюджет: 0,00\n" +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        "• подарок: 0,00\n" +
+                        "• работа: 0,00\n\n" +
+                        "Расходы:\n" +
+                        "• другое: 0,00\n" +
+                        "• еда: 0,00\n" +
+                        "• развлечения: 0,00\n" +
+                        "• дом: 0,00\n" +
+                        "• транспорт: 0,00\n" +
+                        "• здоровье: 0,00";
+
         Assertions.assertEquals(expected, result);
     }
 
@@ -393,22 +397,28 @@ class MessageHandlerFinanceTests {
         messageHandler.Response("/add_ex", "5000", "Продукты еда", userData);
 
         String result = messageHandler.Response("/statistic", "", "", userData);
-        String expected = String.format("Сумма доходов: %,.2f \n", 65000.0) +
-                String.format("Сумма расходов: %,.2f \n", 20000.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 45000.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 65000.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 15000.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 5000.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 0.0);
+
+        String expected =
+                "Статистика за текущий месяц: \n" +
+                        String.format("Сумма доходов: %,.2f \n", 65000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 20000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 45000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 65000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• дом: %,.2f\n", 15000.0) +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
         Assertions.assertEquals(expected, result);
     }
+
 
 
     /**
@@ -567,7 +577,7 @@ class MessageHandlerFinanceTests {
      * Тест на независимость данных для разных пользователей
      */
     @Test
-    void testDifferentUserData(){
+    void testDifferentUserData() {
         messageHandler.Response("/add_in", "50000", "Зарплата работа", userData);
         messageHandler.Response("/add_in", "15000", "Премия работа", userData);
         messageHandler.Response("/add_in", "10000", "Премия работа", userData2);
@@ -577,38 +587,49 @@ class MessageHandlerFinanceTests {
         messageHandler.Response("/add_ex", "5000", "Продукты еда", userData2);
         messageHandler.Response("/add_ex", "2000", "Транспорт транспорт", userData2);
 
-        String result1 = messageHandler.Response("/statistic", "", "", userData);
-        String expected1 = String.format("Сумма доходов: %,.2f \n", 65000.0) +
-                String.format("Сумма расходов: %,.2f \n", 45000.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 20000.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 65000.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 30000.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 15000.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 0.0);
-        Assertions.assertEquals(expected1, result1);
+        String periodTitle = "текущий месяц";
 
+        String result1 = messageHandler.Response("/statistic", "", "", userData);
+
+        String expected1 =
+                "Статистика за текущий месяц: \n" +
+                        String.format("Сумма доходов: %,.2f \n", 65000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 45000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 20000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 65000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• дом: %,.2f\n", 30000.0) +
+                        String.format("• еда: %,.2f\n", 15000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• транспорт: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
+        Assertions.assertEquals(expected1, result1);
         String result2 = messageHandler.Response("/statistic", "", "", userData2);
-        String expected2 = String.format("Сумма доходов: %,.2f \n", 10000.0) +
-                String.format("Сумма расходов: %,.2f \n", 7000.0) +
-                String.format("Оставшийся бюджет: %,.2f\n", 3000.0) +
-                "Статистика по категориям за месяц:\n\n" +
-                "Доходы:\n" +
-                String.format("подарок: %,.2f\n", 0.0) +
-                String.format("работа: %,.2f\n\n", 10000.0) +
-                "Расходы:\n" +
-                String.format("дом: %,.2f\n", 0.0) +
-                String.format("другое: %,.2f\n", 0.0) +
-                String.format("еда: %,.2f\n", 5000.0) +
-                String.format("здоровье: %,.2f\n", 0.0) +
-                String.format("развлечения: %,.2f\n", 0.0) +
-                String.format("транспорт: %,.2f", 2000.0);
+
+        String expected2 =
+                "Статистика за текущий месяц: \n" +
+                        String.format("Сумма доходов: %,.2f \n", 10000.0) +
+                        String.format("Сумма расходов: %,.2f \n", 7000.0) +
+                        String.format("Оставшийся бюджет: %,.2f\n", 3000.0) +
+                        "Статистика по категориям:\n\n" +
+                        "Доходы:\n" +
+                        String.format("• работа: %,.2f\n", 10000.0) +
+                        String.format("• подарок: %,.2f\n", 0.0) +
+                        "\n" +
+                        "Расходы:\n" +
+                        String.format("• еда: %,.2f\n", 5000.0) +
+                        String.format("• транспорт: %,.2f\n", 2000.0) +
+                        String.format("• другое: %,.2f\n", 0.0) +
+                        String.format("• развлечения: %,.2f\n", 0.0) +
+                        String.format("• дом: %,.2f\n", 0.0) +
+                        String.format("• здоровье: %,.2f", 0.0);
+
         Assertions.assertEquals(expected2, result2);
     }
     /**
