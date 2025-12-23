@@ -743,7 +743,7 @@ class MessageHandlerFinanceTests {
                 "Зарплата работа 15.12.2025", userData);
 
         String expected = "– Доход «Зарплата» на сумму " +
-                String.format("%,.2f", 50000.0) + " добавлен.\n" +  // ← ТАК ЖЕ как в коде!
+                String.format("%,.2f", 50000.0) + " добавлен.\n" +
                 "Категория: работа\n" +
                 "Дата: 15.12.2025";
         Assertions.assertEquals(expected, result);
@@ -781,6 +781,7 @@ class MessageHandlerFinanceTests {
 
         Assertions.assertEquals(expected, result);
     }
+    /**
      * Тест успешного удаления категории расходов
      */
     @Test

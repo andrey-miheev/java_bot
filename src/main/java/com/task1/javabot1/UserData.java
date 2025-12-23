@@ -298,7 +298,7 @@ public class UserData {
                 yield "сегодня (" + now.format(dateFormatter) + ")";
             }
             case "week" -> {
-                startDate = now.minusDays(6); // последние 7 дней
+                startDate = now.minusDays(6);
                 yield "текущую неделю (" + startDate.format(dateFormatter) +
                         " - " + now.format(dateFormatter) + ")";
             }
@@ -312,7 +312,6 @@ public class UserData {
                 yield "текущий год (" + now.getYear() + ")";
             }
             default -> {
-                // По умолчанию - текущий месяц
                 startDate = now.with(TemporalAdjusters.firstDayOfMonth());
                 yield "текущий месяц";
             }
