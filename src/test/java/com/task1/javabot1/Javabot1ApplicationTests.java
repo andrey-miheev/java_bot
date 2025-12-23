@@ -781,6 +781,42 @@ class MessageHandlerFinanceTests {
 
         Assertions.assertEquals(expected, result);
     }
+     * Тест успешного удаления категории расходов
+     */
+    @Test
+    void testDelExpenseCategorySuccess() {
+        String result = messageHandler.Response("/del_cat_ex", "", "дом", userData);
+        String expected = "Категория «дом» удалена.";
+        Assertions.assertEquals(expected, result);
 
+        String resultList = messageHandler.Response("/cat_ex", "", "", userData);
+
+        String expectedList = """
+                Доступные категории расходов:
+                • другое
+                • еда
+                • здоровье
+                • развлечения
+                • транспорт""";
+
+        Assertions.assertEquals(expectedList, resultList);
+    }
+
+    /**
+     * Тест успешного удаления категории доходов
+     */
+    @Test
+    void testDelIncomeCategorySuccess() {
+        String result = messageHandler.Response("/del_cat_in", "", "подарок", userData);
+        String expected = "Категория «подарок» удалена.";
+        Assertions.assertEquals(expected, result);
+
+        String resultList = messageHandler.Response("/cat_in", "", "", userData);
+
+        String expectedList = "Доступные категории доходов:\n" +
+                "• работа";
+
+        Assertions.assertEquals(expectedList, resultList);
+    }
 }
 
